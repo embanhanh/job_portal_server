@@ -1,0 +1,36 @@
+services:
+  # ── PostgreSQL (If not using Neon.tech) ──────────────────────────
+  # postgres:
+  #   image: postgres:16-alpine
+  #   container_name: job-portal-db
+  #   ports:
+  #     - "5432:5432"
+  #   environment:
+  #     POSTGRES_DB: neondb
+  #     POSTGRES_USER: neondb_owner
+  #     POSTGRES_PASSWORD: npg_tvoH7A0VNuWg
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+
+  # ── Redis (For BullMQ) ──────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: job-portal-redis
+    ports:
+      - '6379:6379'
+    restart: always
+
+  # ── Elasticsearch (For Job Search) ──────────────────────────────
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.12.0
+    container_name: job-portal-es
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - 'ES_JAVA_OPTS=-Xms512m -Xmx512m'
+    ports:
+      - '9200:9200'
+    restart: always
+
+volumes:
+  postgres_data:

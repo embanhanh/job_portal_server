@@ -1,0 +1,22 @@
+{
+  "success": "Thao tác thành công",
+  "created": "Tạo mới thành công",
+  "updated": "Cập nhật thành công",
+  "deleted": "Xóa thành công",
+  "errors": {
+    "notFound": "Không tìm thấy tài nguyên",
+    "duplicate": "Dữ liệu đã tồn tại trong hệ thống",
+    "database": "Đã xảy ra lỗi cơ sở dữ liệu",
+    "unauthorized": "Truy cập không được phép",
+    "forbidden": "Bạn không có quyền thực hiện thao tác này",
+    "validation": "Dữ liệu không hợp lệ",
+    "tooManyRequests": "Quá nhiều yêu cầu, vui lòng thử lại sau"
+  },
+  "auth": {
+    "loginSuccess": "Đăng nhập thành công",
+    "registerSuccess": "Đăng ký thành công",
+    "invalidCredentials": "Email hoặc mật khẩu không đúng",
+    "tokenExpired": "Phiên đăng nhập đã hết hạn",
+    "logoutSuccess": "Đăng xuất thành công"
+  }
+}

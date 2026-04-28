@@ -1,0 +1,22 @@
+{
+  "success": "Operation successful",
+  "created": "Created successfully",
+  "updated": "Updated successfully",
+  "deleted": "Deleted successfully",
+  "errors": {
+    "notFound": "Resource not found",
+    "duplicate": "A record with this data already exists",
+    "database": "A database error occurred",
+    "unauthorized": "Unauthorized access",
+    "forbidden": "You do not have permission to perform this action",
+    "validation": "Validation failed",
+    "tooManyRequests": "Too many requests, please try again later"
+  },
+  "auth": {
+    "loginSuccess": "Login successful",
+    "registerSuccess": "Registration successful",
+    "invalidCredentials": "Invalid email or password",
+    "tokenExpired": "Token has expired",
+    "logoutSuccess": "Logout successful"
+  }
+}
