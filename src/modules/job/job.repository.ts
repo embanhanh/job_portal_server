@@ -1,8 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, ILike, FindOptionsWhere } from 'typeorm';
+import { Repository, FindOptionsWhere } from 'typeorm';
 import { Job } from './entities/job.entity';
-import { BaseRepository, IPaginatedResult } from '../../common/base/base.repository';
+import {
+  BaseRepository,
+  IPaginatedResult,
+} from '../../common/base/base.repository';
 import { PaginationDto } from '../../common/dto/pagination.dto';
 
 @Injectable()
@@ -22,12 +25,17 @@ export class JobRepository extends BaseRepository<Job> {
 
     const queryBuilder = this.repository
       .createQueryBuilder('job')
-      .leftJoinAndSelect('job.employer', 'employer');
+      .leftJoinAndSelect('job.employer', 'employer')
+      .leftJoinAndSelect('job.company', 'company')
+      .leftJoinAndSelect('job.category', 'category')
+      .leftJoinAndSelect('job.location', 'location')
+      .leftJoinAndSelect('job.jobSkills', 'jobSkill')
+      .leftJoinAndSelect('jobSkill.skill', 'skill');
 
     // Apply search across JSONB fields
     if (search) {
       queryBuilder.andWhere(
-        `(job.title::text ILIKE :search OR job.description::text ILIKE :search OR job.company ILIKE :search)`,
+        `(job.title::text ILIKE :search OR job.description::text ILIKE :search)`,
         { search: `%${search}%` },
       );
     }
@@ -39,10 +47,7 @@ export class JobRepository extends BaseRepository<Job> {
       });
     }
 
-    queryBuilder
-      .orderBy(`job.${sortBy}`, sortOrder)
-      .skip(skip)
-      .take(limit);
+    queryBuilder.orderBy(`job.${sortBy}`, sortOrder).skip(skip).take(limit);
 
     const [data, totalItems] = await queryBuilder.getManyAndCount();
     const totalPages = Math.ceil(totalItems / limit);
@@ -58,5 +63,18 @@ export class JobRepository extends BaseRepository<Job> {
         hasPreviousPage: page > 1,
       },
     };
+  }
+
+  async findByIdWithRelations(id: string): Promise<Job | null> {
+    return this.repository
+      .createQueryBuilder('job')
+      .leftJoinAndSelect('job.employer', 'employer')
+      .leftJoinAndSelect('job.company', 'company')
+      .leftJoinAndSelect('job.category', 'category')
+      .leftJoinAndSelect('job.location', 'location')
+      .leftJoinAndSelect('job.jobSkills', 'jobSkill')
+      .leftJoinAndSelect('jobSkill.skill', 'skill')
+      .where('job.id = :id', { id })
+      .getOne();
   }
 }

@@ -8,6 +8,7 @@ import {
   IsString,
   IsArray,
   IsDateString,
+  IsUUID,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ITranslatableField } from '../../../common/interfaces/response.interface';
@@ -48,15 +49,15 @@ export class CreateJobDto {
   @IsObject()
   benefits?: TranslatableFieldDto;
 
-  @ApiProperty({ example: 'Công ty ABC' })
-  @IsString()
-  @IsNotEmpty()
-  company!: string;
+  @ApiPropertyOptional({ description: 'Category UUID' })
+  @IsOptional()
+  @IsUUID()
+  categoryId?: string;
 
-  @ApiProperty({ example: 'Ho Chi Minh City' })
-  @IsString()
-  @IsNotEmpty()
-  location!: string;
+  @ApiPropertyOptional({ description: 'Location UUID' })
+  @IsOptional()
+  @IsUUID()
+  locationId?: string;
 
   @ApiPropertyOptional({ enum: JobType, default: JobType.FULL_TIME })
   @IsOptional()
@@ -80,14 +81,17 @@ export class CreateJobDto {
   @IsString()
   currency?: string;
 
-  @ApiPropertyOptional({ example: ['NestJS', 'TypeScript', 'PostgreSQL'] })
+  @ApiPropertyOptional({
+    description: 'Array of Skill UUIDs',
+    example: ['uuid-1', 'uuid-2'],
+  })
   @IsOptional()
   @IsArray()
-  @IsString({ each: true })
-  skills?: string[];
+  @IsUUID('4', { each: true })
+  skillIds?: string[];
 
   @ApiPropertyOptional({ example: '2026-12-31T23:59:59Z' })
   @IsOptional()
   @IsDateString()
-  expiresAt?: string;
+  expiredAt?: string;
 }

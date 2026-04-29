@@ -5,7 +5,10 @@ import { Application } from './entities/application.entity';
 import { ApplicationController } from './application.controller';
 import { ApplicationService } from './application.service';
 import { ApplicationRepository } from './application.repository';
-import { ApplicationScoringProcessor, APPLICATION_QUEUE } from './application.processor';
+import {
+  ApplicationScoringProcessor,
+  APPLICATION_QUEUE,
+} from './application.processor';
 import { CloudinaryService } from './cloudinary.service';
 import { JobModule } from '../job/job.module';
 
@@ -22,6 +25,6 @@ import { JobModule } from '../job/job.module';
     ApplicationScoringProcessor,
     CloudinaryService,
   ],
-  exports: [ApplicationService],
+  exports: [ApplicationService, CloudinaryService],
 })
 export class ApplicationModule {}

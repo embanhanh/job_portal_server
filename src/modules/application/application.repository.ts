@@ -2,7 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, FindOptionsWhere, FindOptionsOrder } from 'typeorm';
 import { Application } from './entities/application.entity';
-import { BaseRepository, IPaginatedResult } from '../../common/base/base.repository';
+import {
+  BaseRepository,
+  IPaginatedResult,
+} from '../../common/base/base.repository';
 import { PaginationDto } from '../../common/dto/pagination.dto';
 
 @Injectable()
@@ -22,7 +25,7 @@ export class ApplicationRepository extends BaseRepository<Application> {
 
     const order: FindOptionsOrder<Application> = {
       [sortBy]: sortOrder,
-    } as FindOptionsOrder<Application>;
+    };
 
     const [data, totalItems] = await this.repository.findAndCount({
       where,
@@ -54,7 +57,7 @@ export class ApplicationRepository extends BaseRepository<Application> {
     const where: FindOptionsWhere<Application> = {
       candidateId,
       jobId,
-    } as FindOptionsWhere<Application>;
+    };
     return this.repository.findOne({ where });
   }
 }

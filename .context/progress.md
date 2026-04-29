@@ -25,9 +25,11 @@
 | AuthModule | ✅ Done | JWT + Google/Facebook OAuth2 |
 | JobModule | ✅ Done | CRUD + ES sync via BullMQ |
 | ApplicationModule | ✅ Done | Apply + Cloudinary + BullMQ scoring |
-| CompanyModule | 🔲 Not started | |
-| ResumeModule | 🔲 Not started | |
-| NotificationModule | 🔲 Not started | Firebase integration |
+| CandidateModule | ✅ Done | Profile, CV Upload, Skills, Edu, Exp |
+| CompanyModule | ✅ Done | Profile, Mini ATS (Application status update) |
+| NotificationModule | ✅ Done | Firebase skeleton + BullMQ background jobs |
+| AdminModule | ✅ Done | Ban/Unban user, Approve/Reject job, Verify company |
+| EmailModule | ✅ Done | Email queue via BullMQ + SendGrid/Resend skeleton |
 
 ## Code Quality
 

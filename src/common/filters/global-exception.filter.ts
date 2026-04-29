@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call */
 import {
   ArgumentsHost,
   Catch,
@@ -55,11 +56,17 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
       // Translate known HTTP status errors
       if (statusCode === HttpStatus.UNAUTHORIZED) {
-        message = await this.i18n.translate('common.errors.unauthorized', { lang });
+        message = await this.i18n.translate('common.errors.unauthorized', {
+          lang,
+        });
       } else if (statusCode === HttpStatus.FORBIDDEN) {
-        message = await this.i18n.translate('common.errors.forbidden', { lang });
+        message = await this.i18n.translate('common.errors.forbidden', {
+          lang,
+        });
       } else if (statusCode === HttpStatus.TOO_MANY_REQUESTS) {
-        message = await this.i18n.translate('common.errors.tooManyRequests', { lang });
+        message = await this.i18n.translate('common.errors.tooManyRequests', {
+          lang,
+        });
       }
     }
     // ── Handle TypeORM QueryFailedError ───────────────────────────────
@@ -71,7 +78,9 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       };
 
       if (driverError?.code === '23505') {
-        message = await this.i18n.translate('common.errors.duplicate', { lang });
+        message = await this.i18n.translate('common.errors.duplicate', {
+          lang,
+        });
       } else {
         message = await this.i18n.translate('common.errors.database', { lang });
       }

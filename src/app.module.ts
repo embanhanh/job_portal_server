@@ -4,7 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { BullModule } from '@nestjs/bullmq';
-import { APP_GUARD, APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { AcceptLanguageResolver, I18nModule, QueryResolver } from 'nestjs-i18n';
 import * as path from 'path';
 
@@ -20,11 +20,16 @@ import {
 } from './config';
 
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
-import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
 
 import { AuthModule } from './modules/auth/auth.module';
 import { JobModule } from './modules/job/job.module';
 import { ApplicationModule } from './modules/application/application.module';
+import { MasterDataModule } from './modules/master-data/master-data.module';
+import { CandidateModule } from './modules/candidate/candidate.module';
+import { CompanyModule } from './modules/company/company.module';
+import { NotificationModule } from './modules/notification/notification.module';
+import { AdminModule } from './modules/admin/admin.module';
+import { EmailModule } from './modules/email/email.module';
 
 @Module({
   imports: [
@@ -60,7 +65,7 @@ import { ApplicationModule } from './modules/application/application.module';
           : false,
         autoLoadEntities: true,
         synchronize: config.get<string>('app.env') === 'development',
-        logging: config.get<string>('app.env') === 'development',
+        // logging: config.get<string>('app.env') === 'development',
       }),
     }),
 
@@ -115,6 +120,12 @@ import { ApplicationModule } from './modules/application/application.module';
     AuthModule,
     JobModule,
     ApplicationModule,
+    MasterDataModule,
+    CandidateModule,
+    CompanyModule,
+    NotificationModule,
+    AdminModule,
+    EmailModule,
   ],
   providers: [
     // Global Throttler Guard

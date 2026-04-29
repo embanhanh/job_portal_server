@@ -84,9 +84,9 @@ export class JobElasticsearchListener implements OnModuleInit {
               'title.en^3',
               'description.vi',
               'description.en',
-              'company^2',
-              'skills',
-              'location',
+              'skills^2',
+              'companyName',
+              'locationName',
             ],
             fuzziness: 'AUTO',
           },
@@ -117,6 +117,22 @@ export class JobElasticsearchListener implements OnModuleInit {
 
   private async indexJob(job: Job): Promise<void> {
     try {
+      // Extract skill names from jobSkills relation
+      const skillNames =
+        job.jobSkills
+          ?.map((js) => {
+            const skillName = js.skill?.name;
+            if (skillName && typeof skillName === 'object') {
+              return (
+                (skillName as Record<string, string>).en ??
+                (skillName as Record<string, string>).vi ??
+                ''
+              );
+            }
+            return '';
+          })
+          .filter(Boolean) ?? [];
+
       await this.client.index<JobSearchDocument>({
         index: JOB_INDEX,
         id: job.id,
@@ -125,17 +141,20 @@ export class JobElasticsearchListener implements OnModuleInit {
           description: job.description,
           requirements: job.requirements,
           benefits: job.benefits,
-          company: job.company,
-          location: job.location,
+          companyName: job.company?.companyName,
+          locationName: undefined,
           type: job.type,
           status: job.status,
           salaryMin: job.salaryMin,
           salaryMax: job.salaryMax,
           currency: job.currency,
-          skills: job.skills,
+          skills: skillNames,
+          categoryId: job.categoryId,
+          locationId: job.locationId,
+          companyId: job.companyId,
           employerId: job.employerId,
           createdAt: job.createdAt,
-          expiresAt: job.expiresAt,
+          expiredAt: job.expiredAt,
         },
       });
       this.logger.log(`Job indexed in ES: ${job.id}`);
@@ -151,15 +170,18 @@ export class JobElasticsearchListener implements OnModuleInit {
         properties: {
           title: { type: 'object', enabled: true },
           description: { type: 'object', enabled: true },
-          company: { type: 'text', analyzer: 'standard' },
-          location: { type: 'text' },
+          companyName: { type: 'text', analyzer: 'standard' },
+          locationName: { type: 'text' },
           type: { type: 'keyword' },
           status: { type: 'keyword' },
           salaryMin: { type: 'float' },
           salaryMax: { type: 'float' },
           skills: { type: 'keyword' },
+          categoryId: { type: 'keyword' },
+          locationId: { type: 'keyword' },
+          companyId: { type: 'keyword' },
           createdAt: { type: 'date' },
-          expiresAt: { type: 'date' },
+          expiredAt: { type: 'date' },
         },
       };
 

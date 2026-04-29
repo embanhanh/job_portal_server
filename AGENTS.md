@@ -8,6 +8,8 @@ NestJS recruitment backend:
 - Elasticsearch (search)
 - BullMQ (background jobs)
 - PostgreSQL (JSONB fields)
+- Cloudinary (file uploads)
+- Firebase Admin (push notifications)
 
 ---
 
@@ -62,10 +64,10 @@ Naming:
 
 Use BullMQ for:
 
-- Email
-- AI scoring
-- Image processing
+- Email dispatching
+- AI candidate scoring
 - Elasticsearch sync
+- Firebase Push Notifications
 
 ---
 

@@ -12,7 +12,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JobService } from './job.service';
 import { JobElasticsearchListener } from './job-elasticsearch.listener';
 import { CreateJobDto } from './dto/create-job.dto';
@@ -25,6 +25,7 @@ import { Role } from '../auth/enums/role.enum';
 import type { AuthenticatedRequest } from '../../common/interfaces/authenticated-request.interface';
 
 @ApiTags('Jobs')
+@ApiBearerAuth('token')
 @Controller('jobs')
 export class JobController {
   constructor(
@@ -33,13 +34,12 @@ export class JobController {
   ) {}
 
   @Get()
-  @ApiOperation({ summary: 'Get all published jobs with pagination' })
+  @ApiOperation({ summary: 'Get all open jobs with pagination' })
   async findAll(
     @Query() pagination: PaginationDto,
-    @Query('lang') lang?: string,
     @Headers('accept-language') acceptLang?: string,
   ) {
-    const resolvedLang = lang ?? acceptLang?.split(',')[0]?.trim();
+    const resolvedLang = acceptLang?.split(',')[0]?.trim() ?? 'vi';
     return this.jobService.findAllJobs(pagination, resolvedLang);
   }
 
@@ -57,10 +57,9 @@ export class JobController {
   @ApiOperation({ summary: 'Get a job by ID' })
   async findOne(
     @Param('id', ParseUUIDPipe) id: string,
-    @Query('lang') lang?: string,
     @Headers('accept-language') acceptLang?: string,
   ) {
-    const resolvedLang = lang ?? acceptLang?.split(',')[0]?.trim();
+    const resolvedLang = acceptLang?.split(',')[0]?.trim() ?? 'vi';
     return this.jobService.findOneJob(id, resolvedLang);
   }
 
@@ -83,12 +82,12 @@ export class JobController {
     return this.jobService.updateJob(id, dto);
   }
 
-  @Patch(':id/publish')
+  @Patch(':id/close')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.EMPLOYER, Role.ADMIN)
-  @ApiOperation({ summary: 'Publish a job (Employer/Admin only)' })
-  async publish(@Param('id', ParseUUIDPipe) id: string) {
-    return this.jobService.publishJob(id);
+  @ApiOperation({ summary: 'Close a job (Employer/Admin only)' })
+  async close(@Param('id', ParseUUIDPipe) id: string) {
+    return this.jobService.closeJob(id);
   }
 
   @Delete(':id')
@@ -97,5 +96,16 @@ export class JobController {
   @ApiOperation({ summary: 'Soft-delete a job (Employer/Admin only)' })
   async remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.jobService.deleteJob(id);
+  }
+
+  @Post(':id/save')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.CANDIDATE)
+  @ApiOperation({ summary: 'Toggle save/unsave a job (Candidate only)' })
+  async toggleSave(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.jobService.toggleSaveJob(req.user.id, id);
   }
 }

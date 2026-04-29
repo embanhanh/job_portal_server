@@ -1,12 +1,23 @@
 import {
-  Body, Controller, Get, Param, ParseUUIDPipe,
-  Post, Query, Req, UploadedFile, UseGuards, UseInterceptors,
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+  Query,
+  Req,
+  UploadedFile,
+  UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApplicationService } from './application.service';
 import { CreateApplicationDto } from './dto/create-application.dto';
 import { PaginationDto } from '../../common/dto/pagination.dto';
+import { ApplicationStatus } from './entities/application.entity';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -31,7 +42,10 @@ export class ApplicationController {
     @Req() req: AuthenticatedRequest,
   ) {
     return this.applicationService.apply(
-      req.user.id, dto.jobId, dto.coverLetter, cvFile,
+      req.user.id,
+      dto.jobId,
+      dto.coverLetter,
+      cvFile,
     );
   }
 
@@ -61,5 +75,16 @@ export class ApplicationController {
   @ApiOperation({ summary: 'Get application details' })
   async findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.applicationService.findOne(id);
+  }
+
+  @Patch(':id/status')
+  @Roles(Role.EMPLOYER, Role.ADMIN)
+  @UseGuards(RolesGuard)
+  @ApiOperation({ summary: 'Update application status (Employer/Admin)' })
+  async updateStatus(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body('status') status: ApplicationStatus,
+  ) {
+    return this.applicationService.updateApplicationStatus(id, status);
   }
 }

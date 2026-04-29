@@ -9,7 +9,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import type { AuthTokens } from './auth.service';
 import { LoginDto } from './dto/login.dto';
@@ -38,6 +38,7 @@ export class AuthController {
   @Post('logout')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('token')
   @ApiOperation({ summary: 'Logout current user' })
   async logout(@Req() req: AuthenticatedRequest): Promise<{ message: string }> {
     await this.authService.logout(req.user.id);

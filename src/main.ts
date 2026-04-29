@@ -50,7 +50,17 @@ async function bootstrap() {
       'High-Performance Recruitment System API — Enterprise-grade architecture with DDD, RBAC, and event-driven design.',
     )
     .setVersion('1.0')
-    .addBearerAuth()
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        name: 'JWT',
+        description: 'Enter JWT token',
+        in: 'header',
+      },
+      'token',
+    )
     .addTag('Auth', 'Authentication & Authorization')
     .addTag('Jobs', 'Job Management')
     .addTag('Applications', 'Job Application Management')

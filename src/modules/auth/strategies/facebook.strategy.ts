@@ -14,7 +14,8 @@ export class FacebookStrategy extends PassportStrategy(Strategy, 'facebook') {
     super({
       clientID: configService.get<string>('oauth.facebook.appId') ?? '',
       clientSecret: configService.get<string>('oauth.facebook.appSecret') ?? '',
-      callbackURL: configService.get<string>('oauth.facebook.callbackUrl') ?? '',
+      callbackURL:
+        configService.get<string>('oauth.facebook.callbackUrl') ?? '',
       profileFields: ['id', 'emails', 'name', 'photos'],
       scope: ['email'],
     });
@@ -29,7 +30,8 @@ export class FacebookStrategy extends PassportStrategy(Strategy, 'facebook') {
     try {
       const tokens = await this.authService.validateOAuthUser({
         email: profile.emails?.[0]?.value ?? '',
-        fullName: `${profile.name?.givenName ?? ''} ${profile.name?.familyName ?? ''}`.trim(),
+        fullName:
+          `${profile.name?.givenName ?? ''} ${profile.name?.familyName ?? ''}`.trim(),
         avatar: profile.photos?.[0]?.value,
         facebookId: profile.id,
       });

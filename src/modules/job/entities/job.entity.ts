@@ -1,11 +1,10 @@
-import { Column, Entity, ManyToOne, JoinColumn } from 'typeorm';
+import { Column, Entity, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
 import { BaseEntity } from '../../../common/base/base.entity';
 import type { ITranslatableField } from '../../../common/interfaces/response.interface';
-import type { User } from '../../auth/entities/user.entity';
 
 export enum JobStatus {
-  DRAFT = 'draft',
-  PUBLISHED = 'published',
+  PENDING = 'pending',
+  OPEN = 'open',
   CLOSED = 'closed',
   EXPIRED = 'expired',
 }
@@ -32,16 +31,38 @@ export class Job extends BaseEntity {
   @Column({ type: 'jsonb', nullable: true })
   benefits?: ITranslatableField;
 
-  @Column({ type: 'varchar', length: 255 })
-  company!: string;
+  @Column({ name: 'employer_id' })
+  employerId!: string;
 
-  @Column({ type: 'varchar', length: 255 })
-  location!: string;
+  @ManyToOne('User', { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'employer_id' })
+  employer!: import('../../auth/entities/user.entity').User;
+
+  @Column({ name: 'company_id', nullable: true })
+  companyId?: string;
+
+  @ManyToOne('Company', { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'company_id' })
+  company?: import('../../company/entities/company.entity').Company;
+
+  @Column({ name: 'category_id', nullable: true })
+  categoryId?: string;
+
+  @ManyToOne('Category', { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'category_id' })
+  category?: import('../../master-data/entities/category.entity').Category;
+
+  @Column({ name: 'location_id', nullable: true })
+  locationId?: string;
+
+  @ManyToOne('Location', { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'location_id' })
+  location?: import('../../master-data/entities/location.entity').Location;
 
   @Column({ type: 'enum', enum: JobType, default: JobType.FULL_TIME })
   type!: JobType;
 
-  @Column({ type: 'enum', enum: JobStatus, default: JobStatus.DRAFT })
+  @Column({ type: 'enum', enum: JobStatus, default: JobStatus.PENDING })
   status!: JobStatus;
 
   @Column({ type: 'decimal', precision: 12, scale: 2, nullable: true })
@@ -53,16 +74,9 @@ export class Job extends BaseEntity {
   @Column({ type: 'varchar', length: 10, default: 'VND' })
   currency!: string;
 
-  @Column({ type: 'simple-array', nullable: true })
-  skills?: string[];
+  @Column({ type: 'timestamp', nullable: true, name: 'expired_at' })
+  expiredAt?: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
-  expiresAt?: Date;
-
-  @Column({ name: 'employer_id' })
-  employerId!: string;
-
-  @ManyToOne('User', { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'employer_id' })
-  employer!: User;
+  @OneToMany('JobSkill', 'job')
+  jobSkills?: import('./job-skill.entity').JobSkill[];
 }

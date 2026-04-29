@@ -2,13 +2,17 @@ import {
   Injectable,
   UnauthorizedException,
   ConflictException,
+  NotFoundException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import * as bcrypt from 'bcryptjs';
 import * as crypto from 'crypto';
 import { User } from './entities/user.entity';
+import { UserStatus } from './enums/user-status.enum';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { Role } from './enums/role.enum';
@@ -24,6 +28,10 @@ export interface AuthTokens {
   refreshToken: string;
 }
 
+export const AUTH_EVENTS = {
+  USER_REGISTERED: 'auth.user_registered',
+} as const;
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -31,6 +39,7 @@ export class AuthService {
     private readonly userRepository: Repository<User>,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async register(dto: RegisterDto): Promise<AuthTokens> {
@@ -51,6 +60,10 @@ export class AuthService {
     });
 
     const savedUser = await this.userRepository.save(user);
+
+    // Emit event for Candidate/Company profile auto-creation
+    this.eventEmitter.emit(AUTH_EVENTS.USER_REGISTERED, savedUser);
+
     const tokens = await this.generateTokens(savedUser);
     await this.updateRefreshToken(savedUser.id, tokens.refreshToken);
 
@@ -91,6 +104,8 @@ export class AuthService {
       where: { email: profile.email },
     });
 
+    let isNewUser = false;
+
     if (!user) {
       user = this.userRepository.create({
         email: profile.email,
@@ -101,11 +116,16 @@ export class AuthService {
         role: Role.CANDIDATE,
       });
       user = await this.userRepository.save(user);
+      isNewUser = true;
     } else {
       if (profile.googleId && !user.googleId) user.googleId = profile.googleId;
       if (profile.facebookId && !user.facebookId)
         user.facebookId = profile.facebookId;
       user = await this.userRepository.save(user);
+    }
+
+    if (isNewUser) {
+      this.eventEmitter.emit(AUTH_EVENTS.USER_REGISTERED, user);
     }
 
     const tokens = await this.generateTokens(user);
@@ -120,6 +140,14 @@ export class AuthService {
 
   async logout(userId: string): Promise<void> {
     await this.userRepository.update(userId, { refreshToken: undefined });
+  }
+
+  async updateUserStatus(id: string, status: UserStatus): Promise<User> {
+    const user = await this.userRepository.findOne({ where: { id } });
+    if (!user) throw new NotFoundException('User not found');
+
+    user.status = status;
+    return this.userRepository.save(user);
   }
 
   // ── Private Helpers ────────────────────────────────────────────────
@@ -154,25 +182,14 @@ export class AuthService {
   }
 
   private async hashPassword(password: string): Promise<string> {
-    const salt = crypto.randomBytes(16).toString('hex');
-    return new Promise((resolve, reject) => {
-      crypto.scrypt(password, salt, 64, (err, derivedKey) => {
-        if (err) reject(err);
-        resolve(`${salt}:${derivedKey.toString('hex')}`);
-      });
-    });
+    const saltRounds = 10;
+    return bcrypt.hash(password, saltRounds);
   }
 
   private async verifyPassword(
     password: string,
     hash: string,
   ): Promise<boolean> {
-    const [salt, key] = hash.split(':');
-    return new Promise((resolve, reject) => {
-      crypto.scrypt(password, salt, 64, (err, derivedKey) => {
-        if (err) reject(err);
-        resolve(key === derivedKey.toString('hex'));
-      });
-    });
+    return bcrypt.compare(password, hash);
   }
 }

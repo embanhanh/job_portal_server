@@ -4,7 +4,9 @@
 
 - **Pattern**: Modular Monolith with DDD principles
 - **Flow**: Controller → Service → Repository
-- **Events**: EventEmitter2 for domain events, BullMQ for background processing
+- **Events**: EventEmitter2 for decoupled domain events (e.g., Application Status Updates → Notifications)
+- **Background Processing**: BullMQ (Redis)
+- **File Upload**: Centralized CloudinaryService
 - **Database**: TypeORM v0.3.x + PostgreSQL with JSONB for i18n fields
 
 ## Type Safety Rules
@@ -54,8 +56,8 @@ All heavy/async operations go through BullMQ:
 
 - **application-scoring** queue: AI/ML candidate scoring
 - **elasticsearch-sync** queue: Job indexing to Elasticsearch
-- Email sending (future)
-- Image processing (future)
+- **notification-queue**: Dispatching Push Notifications via Firebase Admin
+- **email-queue**: Sending emails asynchronously using Resend/SendGrid
 
 ## RBAC
 

@@ -3,17 +3,20 @@ export interface JobSearchDocument {
   description: Record<string, string>;
   requirements?: Record<string, string>;
   benefits?: Record<string, string>;
-  company: string;
-  location: string;
+  companyName?: string;
+  locationName?: string;
   type: string;
   status: string;
   salaryMin?: number;
   salaryMax?: number;
   currency: string;
-  skills?: string[];
+  skills: string[];
+  categoryId?: string;
+  locationId?: string;
+  companyId?: string;
   employerId: string;
   createdAt: Date;
-  expiresAt?: Date;
+  expiredAt?: Date;
 }
 
 export interface JobSearchResult {
