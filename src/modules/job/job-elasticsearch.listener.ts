@@ -6,8 +6,11 @@ import type {
   SearchHit,
 } from '@elastic/elasticsearch/lib/api/types';
 import { ConfigService } from '@nestjs/config';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { Job } from './entities/job.entity';
-import { JOB_EVENTS } from './job.service';
+import { JobTranslation } from './entities/job-translation.entity';
+import { JOB_EVENTS } from './job.constants';
 import type {
   JobSearchDocument,
   JobSearchResult,
@@ -21,7 +24,11 @@ export class JobElasticsearchListener implements OnModuleInit {
   private readonly logger = new Logger(JobElasticsearchListener.name);
   private client!: Client;
 
-  constructor(private readonly configService: ConfigService) {}
+  constructor(
+    private readonly configService: ConfigService,
+    @InjectRepository(JobTranslation)
+    private readonly jobTranslationRepo: Repository<JobTranslation>,
+  ) {}
 
   async onModuleInit(): Promise<void> {
     try {
@@ -117,6 +124,36 @@ export class JobElasticsearchListener implements OnModuleInit {
 
   private async indexJob(job: Job): Promise<void> {
     try {
+      // Fetch translations
+      const translations = await this.jobTranslationRepo.find({
+        where: { jobId: job.id },
+      });
+
+      const titleObj: Record<string, string> = {};
+      const descObj: Record<string, string> = {};
+      const reqObj: Record<string, string> = {};
+      const benObj: Record<string, string> = {};
+
+      for (const t of translations) {
+        if (t.title) titleObj[t.language] = t.title;
+        if (t.description) descObj[t.language] = t.description;
+        if (t.requirements) reqObj[t.language] = t.requirements;
+        if (t.benefits) benObj[t.language] = t.benefits;
+      }
+
+      // If no translations exist yet (e.g. during very early dual-write testing),
+      // fallback to the JSONB object if it's an object, or just set it as 'vi' if it's a string
+      const resolveField = (
+        fieldObj: Record<string, string>,
+        fallback: unknown,
+      ): Record<string, string> => {
+        if (Object.keys(fieldObj).length > 0) return fieldObj;
+        if (typeof fallback === 'object' && fallback !== null)
+          return fallback as Record<string, string>;
+        if (typeof fallback === 'string') return { vi: fallback, en: fallback };
+        return { vi: '', en: '' };
+      };
+
       // Extract skill names from jobSkills relation
       const skillNames =
         job.jobSkills
@@ -129,6 +166,7 @@ export class JobElasticsearchListener implements OnModuleInit {
                 ''
               );
             }
+            if (typeof skillName === 'string') return skillName;
             return '';
           })
           .filter(Boolean) ?? [];
@@ -137,10 +175,10 @@ export class JobElasticsearchListener implements OnModuleInit {
         index: JOB_INDEX,
         id: job.id,
         document: {
-          title: job.title,
-          description: job.description,
-          requirements: job.requirements,
-          benefits: job.benefits,
+          title: resolveField(titleObj, job.title),
+          description: resolveField(descObj, job.description),
+          requirements: resolveField(reqObj, job.requirements),
+          benefits: resolveField(benObj, job.benefits),
           companyName: job.company?.companyName,
           locationName: undefined,
           type: job.type,
@@ -168,8 +206,18 @@ export class JobElasticsearchListener implements OnModuleInit {
     if (!exists) {
       const mappings: MappingTypeMapping = {
         properties: {
-          title: { type: 'object', enabled: true },
-          description: { type: 'object', enabled: true },
+          title: {
+            properties: {
+              vi: { type: 'text', analyzer: 'standard' },
+              en: { type: 'text', analyzer: 'english' },
+            },
+          },
+          description: {
+            properties: {
+              vi: { type: 'text', analyzer: 'standard' },
+              en: { type: 'text', analyzer: 'english' },
+            },
+          },
           companyName: { type: 'text', analyzer: 'standard' },
           locationName: { type: 'text' },
           type: { type: 'keyword' },

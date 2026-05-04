@@ -10,7 +10,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiHeader, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { LocationService } from '../services/location.service';
 import { CreateLocationDto } from '../dto/create-location.dto';
 import { UpdateLocationDto } from '../dto/update-location.dto';
@@ -21,6 +21,12 @@ import { Roles } from '../../../common/decorators/roles.decorator';
 import { Role } from '../../auth/enums/role.enum';
 
 @ApiTags('Locations')
+@ApiHeader({
+  name: 'accept-language',
+  required: false,
+  description: 'Ngôn ngữ (vi, en)',
+  example: 'vi',
+})
 @Controller('locations')
 export class LocationController {
   constructor(private readonly locationService: LocationService) {}

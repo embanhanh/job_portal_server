@@ -1,27 +1,50 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, FindOptionsWhere } from 'typeorm';
+import { ClsServiceManager } from 'nestjs-cls';
 import { Job } from './entities/job.entity';
-import {
-  BaseRepository,
-  IPaginatedResult,
-} from '../../common/base/base.repository';
-import { PaginationDto } from '../../common/dto/pagination.dto';
+import { JobTranslation } from './entities/job-translation.entity';
+import { TranslatableRepository } from '../../common/base/translatable.repository';
+import { IPaginatedResult } from '../../common/base/base.repository';
+import { JobFilterDto } from './dto/job-filter.dto';
 
 @Injectable()
-export class JobRepository extends BaseRepository<Job> {
+export class JobRepository extends TranslatableRepository<Job, JobTranslation> {
   constructor(
     @InjectRepository(Job)
     repository: Repository<Job>,
   ) {
-    super(repository);
+    super(repository, JobTranslation, 'jobId', [
+      'title',
+      'description',
+      'requirements',
+      'benefits',
+    ]);
   }
 
   async findAllWithSearch(
-    pagination: PaginationDto,
+    filter: JobFilterDto,
     where?: FindOptionsWhere<Job>,
   ): Promise<IPaginatedResult<Job>> {
-    const { page, limit, sortBy, sortOrder, skip, search } = pagination;
+    const {
+      page,
+      limit,
+      sortBy,
+      sortOrder,
+      skip,
+      search,
+      categoryId,
+      locationId,
+      type,
+      status,
+      salaryMin,
+      salaryMax,
+      companyId,
+    } = filter;
+
+    const cls = ClsServiceManager.getClsService();
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const lang = cls.get('lang') || 'en';
 
     const queryBuilder = this.repository
       .createQueryBuilder('job')
@@ -30,12 +53,19 @@ export class JobRepository extends BaseRepository<Job> {
       .leftJoinAndSelect('job.category', 'category')
       .leftJoinAndSelect('job.location', 'location')
       .leftJoinAndSelect('job.jobSkills', 'jobSkill')
-      .leftJoinAndSelect('jobSkill.skill', 'skill');
+      .leftJoinAndSelect('jobSkill.skill', 'skill')
+      .leftJoin(
+        'job_translations',
+        'trans',
+        'trans.job_id = job.id AND trans.language = :lang',
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        { lang },
+      );
 
-    // Apply search across JSONB fields
+    // Apply search across translation fields
     if (search) {
       queryBuilder.andWhere(
-        `(job.title::text ILIKE :search OR job.description::text ILIKE :search)`,
+        `(trans.title ILIKE :search OR trans.description ILIKE :search)`,
         { search: `%${search}%` },
       );
     }
@@ -43,8 +73,33 @@ export class JobRepository extends BaseRepository<Job> {
     // Apply additional where conditions
     if (where) {
       Object.entries(where).forEach(([key, value]) => {
-        queryBuilder.andWhere(`job.${key} = :${key}`, { [key]: value });
+        if (value !== undefined) {
+          queryBuilder.andWhere(`job.${key} = :${key}`, { [key]: value });
+        }
       });
+    }
+
+    // Apply filters from DTO
+    if (categoryId) {
+      queryBuilder.andWhere('job.categoryId = :categoryId', { categoryId });
+    }
+    if (locationId) {
+      queryBuilder.andWhere('job.locationId = :locationId', { locationId });
+    }
+    if (type) {
+      queryBuilder.andWhere('job.type = :type', { type });
+    }
+    if (status) {
+      queryBuilder.andWhere('job.status = :status', { status });
+    }
+    if (companyId) {
+      queryBuilder.andWhere('job.companyId = :companyId', { companyId });
+    }
+    if (salaryMin !== undefined) {
+      queryBuilder.andWhere('job.salaryMax >= :salaryMin', { salaryMin });
+    }
+    if (salaryMax !== undefined) {
+      queryBuilder.andWhere('job.salaryMin <= :salaryMax', { salaryMax });
     }
 
     queryBuilder.orderBy(`job.${sortBy}`, sortOrder).skip(skip).take(limit);
@@ -52,8 +107,10 @@ export class JobRepository extends BaseRepository<Job> {
     const [data, totalItems] = await queryBuilder.getManyAndCount();
     const totalPages = Math.ceil(totalItems / limit);
 
+    const translatedData = await this.applyTranslationsMany(data);
+
     return {
-      data,
+      data: translatedData,
       meta: {
         page,
         limit,
@@ -66,7 +123,7 @@ export class JobRepository extends BaseRepository<Job> {
   }
 
   async findByIdWithRelations(id: string): Promise<Job | null> {
-    return this.repository
+    const job = await this.repository
       .createQueryBuilder('job')
       .leftJoinAndSelect('job.employer', 'employer')
       .leftJoinAndSelect('job.company', 'company')
@@ -76,5 +133,8 @@ export class JobRepository extends BaseRepository<Job> {
       .leftJoinAndSelect('jobSkill.skill', 'skill')
       .where('job.id = :id', { id })
       .getOne();
+
+    if (!job) return null;
+    return this.applyTranslations(job);
   }
 }

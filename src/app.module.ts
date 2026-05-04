@@ -6,7 +6,11 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { BullModule } from '@nestjs/bullmq';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { AcceptLanguageResolver, I18nModule, QueryResolver } from 'nestjs-i18n';
+import { ClsModule } from 'nestjs-cls';
+import { CacheModule } from '@nestjs/cache-manager';
+import * as redisStore from 'cache-manager-redis-store';
 import * as path from 'path';
+import { Request } from 'express';
 
 import {
   appConfig,
@@ -114,6 +118,33 @@ import { EmailModule } from './modules/email/email.module';
         { use: QueryResolver, options: ['lang'] },
         AcceptLanguageResolver,
       ],
+    }),
+
+    // ── Global Context (CLS) ─────────────────────────────────────────
+    ClsModule.forRoot({
+      global: true,
+      middleware: {
+        mount: true,
+        setup: (cls, req: Request) => {
+          const acceptLang = req.headers['accept-language'] as string;
+          const lang = acceptLang?.split(',')[0]?.trim() || 'vi';
+          cls.set('lang', lang);
+        },
+      },
+    }),
+
+    // ── Global Caching ───────────────────────────────────────────────
+    CacheModule.registerAsync({
+      isGlobal: true,
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        store: redisStore,
+        host: config.get<string>('redis.host'),
+        port: config.get<number>('redis.port'),
+        password: config.get<string>('redis.password'),
+        ttl: 60 * 60, // 1 hour by default
+      }),
     }),
 
     // ── Feature Modules ──────────────────────────────────────────────

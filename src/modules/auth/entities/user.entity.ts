@@ -47,7 +47,7 @@ export class User extends BaseEntity {
   @Column({ name: 'facebook_id', nullable: true })
   facebookId?: string;
 
-  @Column({ name: 'refresh_token', nullable: true })
+  @Column({ name: 'refresh_token', type: 'varchar', nullable: true })
   @Exclude()
-  refreshToken?: string;
+  refreshToken?: string | null;
 }

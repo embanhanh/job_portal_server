@@ -12,12 +12,17 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiHeader,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import { JobService } from './job.service';
 import { JobElasticsearchListener } from './job-elasticsearch.listener';
 import { CreateJobDto } from './dto/create-job.dto';
 import { UpdateJobDto } from './dto/update-job.dto';
-import { PaginationDto } from '../../common/dto/pagination.dto';
+import { JobFilterDto } from './dto/job-filter.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -26,6 +31,12 @@ import type { AuthenticatedRequest } from '../../common/interfaces/authenticated
 
 @ApiTags('Jobs')
 @ApiBearerAuth('token')
+@ApiHeader({
+  name: 'accept-language',
+  required: false,
+  description: 'Ngôn ngữ (vi, en)',
+  example: 'vi',
+})
 @Controller('jobs')
 export class JobController {
   constructor(
@@ -34,33 +45,15 @@ export class JobController {
   ) {}
 
   @Get()
-  @ApiOperation({ summary: 'Get all open jobs with pagination' })
-  async findAll(
-    @Query() pagination: PaginationDto,
-    @Headers('accept-language') acceptLang?: string,
-  ) {
-    const resolvedLang = acceptLang?.split(',')[0]?.trim() ?? 'vi';
-    return this.jobService.findAllJobs(pagination, resolvedLang);
-  }
-
-  @Get('search')
-  @ApiOperation({ summary: 'Full-text search jobs via Elasticsearch' })
-  async search(
-    @Query('q') query: string,
-    @Query('from') from?: number,
-    @Query('size') size?: number,
-  ) {
-    return this.esListener.searchJobs(query, from, size);
+  @ApiOperation({ summary: 'Get all jobs with filtering and pagination' })
+  async findAll(@Query() filter: JobFilterDto) {
+    return this.jobService.findAllJobs(filter);
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get a job by ID' })
-  async findOne(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Headers('accept-language') acceptLang?: string,
-  ) {
-    const resolvedLang = acceptLang?.split(',')[0]?.trim() ?? 'vi';
-    return this.jobService.findOneJob(id, resolvedLang);
+  async findOne(@Param('id', ParseUUIDPipe) id: string) {
+    return this.jobService.findOneJob(id);
   }
 
   @Post()

@@ -1,5 +1,6 @@
 import { Column, Entity, ManyToOne, JoinColumn } from 'typeorm';
 import { BaseEntity } from '../../../common/base/base.entity';
+import { Candidate } from './candidate.entity';
 
 @Entity('education')
 export class Education extends BaseEntity {
@@ -8,7 +9,7 @@ export class Education extends BaseEntity {
 
   @ManyToOne('Candidate', 'educations', { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'candidate_id' })
-  candidate!: import('./candidate.entity').Candidate;
+  candidate!: Candidate;
 
   @Column({ name: 'school_name' })
   schoolName!: string;

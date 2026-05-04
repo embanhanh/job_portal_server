@@ -1,5 +1,9 @@
 import { Column, Entity, OneToOne, JoinColumn, OneToMany } from 'typeorm';
 import { BaseEntity } from '../../../common/base/base.entity';
+import { User } from 'src/modules/auth/entities/user.entity';
+import { Education } from './education.entity';
+import { Experience } from './experience.entity';
+import { CandidateSkill } from './candidate-skill.entity';
 
 @Entity('candidates')
 export class Candidate extends BaseEntity {
@@ -8,7 +12,7 @@ export class Candidate extends BaseEntity {
 
   @OneToOne('User', { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
-  user!: import('../../auth/entities/user.entity').User;
+  user!: User;
 
   @Column({ name: 'full_name', nullable: true })
   fullName?: string;
@@ -29,11 +33,11 @@ export class Candidate extends BaseEntity {
   isSearching!: boolean;
 
   @OneToMany('Education', 'candidate')
-  educations?: import('./education.entity').Education[];
+  educations?: Education[];
 
   @OneToMany('Experience', 'candidate')
-  experiences?: import('./experience.entity').Experience[];
+  experiences?: Experience[];
 
   @OneToMany('CandidateSkill', 'candidate')
-  candidateSkills?: import('./candidate-skill.entity').CandidateSkill[];
+  candidateSkills?: CandidateSkill[];
 }

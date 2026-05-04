@@ -139,7 +139,43 @@ export class AuthService {
   }
 
   async logout(userId: string): Promise<void> {
-    await this.userRepository.update(userId, { refreshToken: undefined });
+    await this.userRepository.update(userId, { refreshToken: null });
+  }
+
+  async refreshTokens(refreshToken: string): Promise<AuthTokens> {
+    try {
+      const payload: JwtPayload = await this.jwtService.verifyAsync(
+        refreshToken,
+        {
+          secret: this.configService.get<string>('jwt.refreshSecret'),
+        },
+      );
+
+      const user = await this.userRepository.findOne({
+        where: { id: payload.sub },
+      });
+
+      if (!user || !user.refreshToken) {
+        throw new UnauthorizedException('Access Denied');
+      }
+
+      const hashedToken = crypto
+        .createHash('sha256')
+        .update(refreshToken)
+        .digest('hex');
+
+      if (user.refreshToken !== hashedToken) {
+        throw new UnauthorizedException('Access Denied');
+      }
+
+      const tokens = await this.generateTokens(user);
+      await this.updateRefreshToken(user.id, tokens.refreshToken);
+
+      return tokens;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (e) {
+      throw new UnauthorizedException('Access Denied');
+    }
   }
 
   async updateUserStatus(id: string, status: UserStatus): Promise<User> {

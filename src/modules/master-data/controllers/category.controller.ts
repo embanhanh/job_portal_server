@@ -10,7 +10,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiHeader, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CategoryService } from '../services/category.service';
 import { CreateCategoryDto } from '../dto/create-category.dto';
 import { UpdateCategoryDto } from '../dto/update-category.dto';
@@ -21,6 +21,12 @@ import { Roles } from '../../../common/decorators/roles.decorator';
 import { Role } from '../../auth/enums/role.enum';
 
 @ApiTags('Categories')
+@ApiHeader({
+  name: 'accept-language',
+  required: false,
+  description: 'Ngôn ngữ (vi, en)',
+  example: 'vi',
+})
 @Controller('categories')
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}

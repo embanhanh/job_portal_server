@@ -1,6 +1,7 @@
 import { Column, Entity, OneToOne, JoinColumn } from 'typeorm';
 import { BaseEntity } from '../../../common/base/base.entity';
 import type { ITranslatableField } from '../../../common/interfaces/response.interface';
+import { User } from 'src/modules/auth/entities/user.entity';
 
 @Entity('companies')
 export class Company extends BaseEntity {
@@ -9,7 +10,7 @@ export class Company extends BaseEntity {
 
   @OneToOne('User', { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
-  user!: import('../../auth/entities/user.entity').User;
+  user!: User;
 
   @Column({ name: 'company_name' })
   companyName!: string;
@@ -20,7 +21,6 @@ export class Company extends BaseEntity {
   @Column({ nullable: true })
   website?: string;
 
-  @Column({ type: 'jsonb', nullable: true })
   description?: ITranslatableField;
 
   @Column({ name: 'business_license_url', nullable: true })

@@ -2,10 +2,11 @@
 
 ## Current Task
 
-✅ **COMPLETED** — Scaffolding Candidate, Company, Notification, Admin and Email modules. Backend is functionally complete.
+✅ **COMPLETED** — Refactored Internationalization (i18n) Architecture to use Normalized Translation Tables, nestjs-cls for global language context, and Redis caching.
 
 ## Completed
 
+- [x] Refactored i18n Architecture: Migrated away from manual JSONB mapLanguage mapping to a scalable Translation Table structure.
 - [x] Phase 2: Candidate Module (Profile, CV Upload, Skills synchronization, Education, Experience)
 - [x] Phase 3: Company Module (Profile, Logo/License upload, Application status updates for ATS)
 - [x] Phase 4: Notification Module (BullMQ processor, Push notification skeleton, Event listener)

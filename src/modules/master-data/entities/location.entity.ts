@@ -4,7 +4,6 @@ import type { ITranslatableField } from '../../../common/interfaces/response.int
 
 @Entity('locations')
 export class Location extends BaseEntity {
-  @Column({ type: 'jsonb' })
   name!: ITranslatableField;
 
   @Column({ unique: true })

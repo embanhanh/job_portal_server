@@ -1,6 +1,7 @@
 import { Column, Entity, ManyToOne, JoinColumn } from 'typeorm';
 import { BaseEntity } from '../../../common/base/base.entity';
 import { NotificationType } from '../enums/notification-type.enum';
+import { User } from 'src/modules/auth/entities/user.entity';
 
 @Entity('notifications')
 export class Notification extends BaseEntity {
@@ -9,7 +10,7 @@ export class Notification extends BaseEntity {
 
   @ManyToOne('User', { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
-  user!: import('../../auth/entities/user.entity').User;
+  user!: User;
 
   @Column({ type: 'enum', enum: NotificationType })
   type!: NotificationType;

@@ -5,7 +5,7 @@ import {
   Injectable,
   NestInterceptor,
 } from '@nestjs/common';
-import { Observable, map } from 'rxjs';
+import { Observable, switchMap } from 'rxjs';
 import { I18nService } from 'nestjs-i18n';
 import { IApiResponse } from '../interfaces/response.interface';
 
@@ -32,7 +32,7 @@ export class ResponseInterceptor<T> implements NestInterceptor<
       'en';
 
     return next.handle().pipe(
-      map((responseData) => {
+      switchMap(async (responseData) => {
         // If the response already has the correct structure, pass it through
         if (
           responseData?.success !== undefined &&
@@ -43,7 +43,7 @@ export class ResponseInterceptor<T> implements NestInterceptor<
 
         // Translate success message based on HTTP method
         const messageKey = this.getMessageKey(request.method);
-        const message = this.i18n.translate(messageKey, { lang });
+        const message = await this.i18n.translate(messageKey, { lang });
 
         // Handle paginated results (they contain data + meta)
         if (responseData?.data && responseData?.meta) {

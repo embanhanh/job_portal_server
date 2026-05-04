@@ -85,4 +85,7 @@ async function bootstrap() {
   logger.log(`🌍 Environment: ${configService.get<string>('app.env')}`);
 }
 
-bootstrap();
+bootstrap().catch((err) => {
+  console.error('Application failed to start:', err);
+  process.exit(1);
+});

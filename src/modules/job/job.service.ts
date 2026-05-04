@@ -6,29 +6,19 @@ import {
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { Job, JobStatus } from './entities/job.entity';
 import { JobSkill } from './entities/job-skill.entity';
 import { SavedJobRepository } from './repositories/saved-job.repository';
 import { JobRepository } from './job.repository';
 import { BaseService } from '../../common/base/base.service';
-import { PaginationDto } from '../../common/dto/pagination.dto';
-import { IPaginatedResult } from '../../common/base/base.repository';
 import { CreateJobDto } from './dto/create-job.dto';
+import { JobFilterDto } from './dto/job-filter.dto';
+import { IPaginatedResult } from '../../common/base/base.repository';
+import { JobElasticsearchListener } from './job-elasticsearch.listener';
+import { JobSearchResult } from './interfaces/job-search.interface';
 
-export const JOB_EVENTS = {
-  CREATED: 'job.created',
-  UPDATED: 'job.updated',
-  DELETED: 'job.deleted',
-  PUBLISHED: 'job.published',
-} as const;
-
-const TRANSLATABLE_FIELDS: (keyof Job)[] = [
-  'title',
-  'description',
-  'requirements',
-  'benefits',
-];
+import { JOB_EVENTS } from './job.constants';
 
 @Injectable()
 export class JobService extends BaseService<Job> {
@@ -40,39 +30,62 @@ export class JobService extends BaseService<Job> {
     @InjectRepository(JobSkill)
     private readonly jobSkillRepository: Repository<JobSkill>,
     private readonly savedJobRepository: SavedJobRepository,
+    private readonly esListener: JobElasticsearchListener,
   ) {
     super(jobRepository);
   }
 
-  async findAllJobs(
-    pagination: PaginationDto,
-    lang?: string,
-  ): Promise<IPaginatedResult<Job>> {
-    const result = await this.jobRepository.findAllWithSearch(pagination, {
-      status: JobStatus.OPEN,
-    });
+  async findAllJobs(filter: JobFilterDto): Promise<IPaginatedResult<Job>> {
+    const { search, ...filters } = filter;
 
-    if (lang) {
-      result.data = this.mapLanguageMany(
-        result.data,
-        lang,
-        TRANSLATABLE_FIELDS,
-      );
+    // If search keyword is provided, use Elasticsearch to get IDs first
+    if (search) {
+      try {
+        const esResult = await this.esListener.searchJobs(
+          search,
+          filter.skip,
+          filter.limit,
+        );
+
+        if (esResult.hits.length > 0) {
+          const ids = esResult.hits
+            .map((h: JobSearchResult) => h.id)
+            .filter((id): id is string => !!id);
+          // Query DB for full entities using IDs, preserving other filters
+          return this.jobRepository.findAllWithSearch(filter, {
+            id: In(ids),
+            status: filters.status || JobStatus.OPEN,
+          });
+        }
+
+        // If ES returned no results, return empty paginated result
+        return {
+          data: [],
+          meta: {
+            page: filter.page,
+            limit: filter.limit,
+            totalItems: 0,
+            totalPages: 0,
+            hasNextPage: false,
+            hasPreviousPage: false,
+          },
+        };
+      } catch (error) {
+        this.logger.error('ES search failed, falling back to DB', error);
+      }
     }
 
-    return result;
+    // Fallback or default to DB search
+    return this.jobRepository.findAllWithSearch(filter, {
+      status: filter.status || JobStatus.OPEN,
+    });
   }
 
-  async findOneJob(id: string, lang?: string): Promise<Job> {
+  async findOneJob(id: string): Promise<Job> {
     const job = await this.jobRepository.findByIdWithRelations(id);
     if (!job) {
       throw new NotFoundException(`Job with id "${id}" not found`);
     }
-
-    if (lang) {
-      return this.mapLanguage(job, lang, TRANSLATABLE_FIELDS);
-    }
-
     return job;
   }
 
@@ -87,6 +100,7 @@ export class JobService extends BaseService<Job> {
       ...jobData,
       employerId,
       companyId,
+      status: JobStatus.OPEN,
       expiredAt: dto.expiredAt ? new Date(dto.expiredAt) : undefined,
     });
 

@@ -10,7 +10,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiHeader, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { SkillService } from '../services/skill.service';
 import { CreateSkillDto } from '../dto/create-skill.dto';
 import { UpdateSkillDto } from '../dto/update-skill.dto';
@@ -21,6 +21,12 @@ import { Roles } from '../../../common/decorators/roles.decorator';
 import { Role } from '../../auth/enums/role.enum';
 
 @ApiTags('Skills')
+@ApiHeader({
+  name: 'accept-language',
+  required: false,
+  description: 'Ngôn ngữ (vi, en)',
+  example: 'vi',
+})
 @Controller('skills')
 export class SkillController {
   constructor(private readonly skillService: SkillService) {}

@@ -9,12 +9,12 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import type { AuthTokens } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { RefreshTokenDto } from './dto/refresh-token.dto';
 import type { AuthenticatedRequest } from '../../common/interfaces/authenticated-request.interface';
 
 @ApiTags('Auth')
@@ -35,14 +35,11 @@ export class AuthController {
     return this.authService.login(dto);
   }
 
-  @Post('logout')
+  @Post('refresh')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth('token')
-  @ApiOperation({ summary: 'Logout current user' })
-  async logout(@Req() req: AuthenticatedRequest): Promise<{ message: string }> {
-    await this.authService.logout(req.user.id);
-    return { message: 'Logged out successfully' };
+  @ApiOperation({ summary: 'Refresh authentication tokens' })
+  async refresh(@Body() dto: RefreshTokenDto): Promise<AuthTokens> {
+    return this.authService.refreshTokens(dto.refreshToken);
   }
 
   // ── OAuth2: Google ─────────────────────────────────────────────────

@@ -3,7 +3,6 @@ import { DeepPartial, FindOptionsWhere, ObjectLiteral } from 'typeorm';
 import { BaseEntity } from './base.entity';
 import { BaseRepository, IPaginatedResult } from './base.repository';
 import { PaginationDto } from '../dto/pagination.dto';
-import { ITranslatableField } from '../interfaces/response.interface';
 
 export abstract class BaseService<T extends BaseEntity & ObjectLiteral> {
   constructor(protected readonly baseRepository: BaseRepository<T>) {}
@@ -41,35 +40,5 @@ export abstract class BaseService<T extends BaseEntity & ObjectLiteral> {
   async softDelete(id: string): Promise<boolean> {
     await this.findOne(id);
     return this.baseRepository.softDelete(id);
-  }
-
-  /**
-   * Extracts a specific language value from JSONB translatable fields.
-   */
-  mapLanguage<R extends object>(data: R, lang: string, fields: (keyof R)[]): R {
-    const result = { ...data };
-    for (const field of fields) {
-      const value = result[field] as unknown;
-      if (
-        value !== null &&
-        typeof value === 'object' &&
-        !Array.isArray(value) &&
-        lang in (value as Record<string, string>)
-      ) {
-        (result[field] as unknown) = (value as ITranslatableField)[lang];
-      }
-    }
-    return result;
-  }
-
-  /**
-   * Maps language for an array of entities.
-   */
-  mapLanguageMany<R extends object>(
-    items: R[],
-    lang: string,
-    fields: (keyof R)[],
-  ): R[] {
-    return items.map((item) => this.mapLanguage(item, lang, fields));
   }
 }

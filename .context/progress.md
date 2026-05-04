@@ -8,12 +8,13 @@
 | Config system | ✅ Done | 6 config modules (app, db, redis, es, cloudinary, firebase) |
 | Base Entity | ✅ Done | UUID + timestamps + soft-delete |
 | Base Repository | ✅ Done | Generic CRUD + pagination |
-| Base Service | ✅ Done | CRUD + mapLanguage() |
+| Translatable Repository | ✅ Done | Context-aware read switching via ClsService + Redis cache |
+| Base Service | ✅ Done | CRUD (mapLanguage completely removed) |
 | PaginationDto | ✅ Done | class-validator + Swagger |
 | ResponseInterceptor | ✅ Done | Unified response wrapper |
 | GlobalExceptionFilter | ✅ Done | HttpException + TypeORM + i18n |
 | RBAC (Roles) | ✅ Done | @Roles() decorator + RolesGuard |
-| I18n | ✅ Done | vi/en with nestjs-i18n |
+| I18n | ✅ Done | Normalized translation tables, nestjs-cls global context, multi-fields in ES |
 | API Versioning | ✅ Done | URI-based v1 default |
 | Rate Limiting | ✅ Done | ThrottlerModule |
 | Swagger | ✅ Done | /api/docs |

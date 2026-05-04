@@ -1,6 +1,11 @@
 import { Column, Entity, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
 import { BaseEntity } from '../../../common/base/base.entity';
 import type { ITranslatableField } from '../../../common/interfaces/response.interface';
+import { Company } from 'src/modules/company/entities/company.entity';
+import { User } from 'src/modules/auth/entities/user.entity';
+import { Category } from 'src/modules/master-data/entities/category.entity';
+import { Location } from 'src/modules/master-data/entities/location.entity';
+import { JobSkill } from './job-skill.entity';
 
 export enum JobStatus {
   PENDING = 'pending',
@@ -19,16 +24,12 @@ export enum JobType {
 
 @Entity('jobs')
 export class Job extends BaseEntity {
-  @Column({ type: 'jsonb' })
   title!: ITranslatableField;
 
-  @Column({ type: 'jsonb' })
   description!: ITranslatableField;
 
-  @Column({ type: 'jsonb', nullable: true })
   requirements?: ITranslatableField;
 
-  @Column({ type: 'jsonb', nullable: true })
   benefits?: ITranslatableField;
 
   @Column({ name: 'employer_id' })
@@ -36,28 +37,28 @@ export class Job extends BaseEntity {
 
   @ManyToOne('User', { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'employer_id' })
-  employer!: import('../../auth/entities/user.entity').User;
+  employer!: User;
 
   @Column({ name: 'company_id', nullable: true })
   companyId?: string;
 
   @ManyToOne('Company', { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'company_id' })
-  company?: import('../../company/entities/company.entity').Company;
+  company?: Company;
 
   @Column({ name: 'category_id', nullable: true })
   categoryId?: string;
 
   @ManyToOne('Category', { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'category_id' })
-  category?: import('../../master-data/entities/category.entity').Category;
+  category?: Category;
 
   @Column({ name: 'location_id', nullable: true })
   locationId?: string;
 
   @ManyToOne('Location', { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'location_id' })
-  location?: import('../../master-data/entities/location.entity').Location;
+  location?: Location;
 
   @Column({ type: 'enum', enum: JobType, default: JobType.FULL_TIME })
   type!: JobType;
@@ -78,5 +79,5 @@ export class Job extends BaseEntity {
   expiredAt?: Date;
 
   @OneToMany('JobSkill', 'job')
-  jobSkills?: import('./job-skill.entity').JobSkill[];
+  jobSkills?: JobSkill[];
 }

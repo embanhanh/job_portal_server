@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Job } from './entities/job.entity';
 import { JobSkill } from './entities/job-skill.entity';
 import { SavedJob } from './entities/saved-job.entity';
+import { JobTranslation } from './entities/job-translation.entity';
 import { JobController } from './job.controller';
 import { JobService } from './job.service';
 import { JobRepository } from './job.repository';
@@ -10,7 +11,9 @@ import { SavedJobRepository } from './repositories/saved-job.repository';
 import { JobElasticsearchListener } from './job-elasticsearch.listener';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Job, JobSkill, SavedJob])],
+  imports: [
+    TypeOrmModule.forFeature([Job, JobSkill, SavedJob, JobTranslation]),
+  ],
   controllers: [JobController],
   providers: [
     JobService,
