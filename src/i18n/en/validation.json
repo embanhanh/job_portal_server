@@ -1,0 +1,18 @@
+{
+  "isEnum": "{field} must be one of the following values: {values}",
+  "isNotEmpty": "{field} should not be empty",
+  "minLength": "{field} must be at least {min} characters",
+  "maxLength": "{field} must not exceed {max} characters",
+  "isEmail": "{field} must be a valid email address",
+  "isString": "{field} must be a string",
+  "isNumber": "{field} must be a number",
+  "isBoolean": "{field} must be a boolean",
+  "isInt": "{field} must be an integer",
+  "isPositive": "{field} must be a positive number",
+  "isArray": "{field} must be an array",
+  "isDate": "{field} must be a valid date",
+  "isUrl": "{field} must be a valid URL",
+  "isUUID": "{field} must be a valid UUID",
+  "isStrongPassword": "{field} is not strong enough",
+  "matches": "{field} has an invalid format"
+}

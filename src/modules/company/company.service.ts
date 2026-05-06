@@ -7,7 +7,8 @@ import { AUTH_EVENTS } from '../auth/auth.service';
 import { User } from '../auth/entities/user.entity';
 import { Role } from '../auth/enums/role.enum';
 import { UpdateCompanyProfileDto } from './dto/update-company.dto';
-import { CloudinaryService } from '../application/cloudinary.service';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
+import { CLOUDINARY_FOLDERS } from '../cloudinary/constants/cloudinary.constants';
 import { NotFoundException } from '@nestjs/common';
 
 @Injectable()
@@ -44,7 +45,10 @@ export class CompanyService extends BaseService<Company> {
     if (!company) {
       throw new NotFoundException('Company profile not found');
     }
-    const uploadResult = await this.cloudinaryService.uploadFile(file);
+    const uploadResult = await this.cloudinaryService.uploadFile(
+      file,
+      CLOUDINARY_FOLDERS.COMPANY_LOGOS,
+    );
     return this.update(company.id, {
       logoUrl: uploadResult.url,
     });
@@ -58,7 +62,10 @@ export class CompanyService extends BaseService<Company> {
     if (!company) {
       throw new NotFoundException('Company profile not found');
     }
-    const uploadResult = await this.cloudinaryService.uploadFile(file);
+    const uploadResult = await this.cloudinaryService.uploadFile(
+      file,
+      CLOUDINARY_FOLDERS.COMPANY_DOCS,
+    );
     return this.update(company.id, {
       businessLicenseUrl: uploadResult.url,
     });

@@ -76,6 +76,39 @@ Three roles: `admin`, `employer`, `candidate`
 ## Error Handling
 
 - Services throw NestJS built-in exceptions (`NotFoundException`, `ConflictException`, etc.)
-- `GlobalExceptionFilter` catches all, localizes messages via nestjs-i18n
-- TypeORM `QueryFailedError` mapped to `400 Bad Request`
+- `GlobalExceptionFilter` catches all, delegates to registered handlers via DI
+- Registered as `APP_FILTER` in AppModule — không dùng `app.useGlobalFilters()` trong main.ts
+- Handler order (first match wins): ValidationException → HttpException → QueryFailed → EntityNotFound → Fallback
+- TypeORM `QueryFailedError` mapped to `400 Bad Request` (or `409 Conflict` for unique violation)
 - TypeORM `EntityNotFoundError` mapped to `404 Not Found`
+- Internal errors: message ẩn khỏi client, chỉ log server-side
+
+## Exception Handler Pattern (OCP)
+
+Để thêm exception type mới:
+1. Tạo class implement `ExceptionHandler` interface trong `src/common/filters/exception-handlers/`
+2. Đăng ký class vào `providers[]` trong `AppModule`
+3. Thêm vào `EXCEPTION_HANDLERS` factory array với đúng thứ tự ưu tiên
+4. Không cần sửa `GlobalExceptionFilter`
+
+```typescript
+// exception-handler.interface.ts
+export interface ExceptionHandler {
+  canHandle(exception: unknown): boolean;
+  handle(exception: unknown, lang: string): Promise<ExceptionResult>;
+}
+```
+
+## Validation Pattern
+
+- `I18nValidationPipe` thay thế `ValidationPipe` default (đăng ký trong `main.ts`)
+- Trả `422 UNPROCESSABLE_ENTITY` với `errors: Record<string, string[]>` per field
+- Hỗ trợ nested DTO (vd: `address.city`)
+- i18n keys: `validation.<constraintKey>` trong `i18n/en/validation.json` và `i18n/vi/validation.json`
+- Flag `isValidationError: true` trong exception body để filter nhận diện
+
+## Postgres Error Handling
+
+- Dùng `POSTGRES_ERROR_CODES` constant từ `src/common/constants/postgres-error-codes.constant.ts`
+- Dùng `isPostgresError()` type guard thay unsafe cast
+

@@ -17,7 +17,7 @@ import { ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApplicationService } from './application.service';
 import { CreateApplicationDto } from './dto/create-application.dto';
 import { PaginationDto } from '../../common/dto/pagination.dto';
-import { ApplicationStatus } from './entities/application.entity';
+import { ApplicationStatus } from './enums/application-status';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';

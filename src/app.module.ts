@@ -4,7 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { BullModule } from '@nestjs/bullmq';
-import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { AcceptLanguageResolver, I18nModule, QueryResolver } from 'nestjs-i18n';
 import { ClsModule } from 'nestjs-cls';
 import { CacheModule } from '@nestjs/cache-manager';
@@ -24,6 +24,13 @@ import {
 } from './config';
 
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
+import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
+import { EXCEPTION_HANDLERS } from './common/filters/exception-handlers/exception-handler.interface';
+import { ValidationExceptionHandler } from './common/filters/exception-handlers/validation-exception.handler';
+import { HttpExceptionHandler } from './common/filters/exception-handlers/http-exception.handler';
+import { QueryFailedExceptionHandler } from './common/filters/exception-handlers/query-failed-exception.handler';
+import { EntityNotFoundExceptionHandler } from './common/filters/exception-handlers/entity-not-found-exception.handler';
+import { FallbackExceptionHandler } from './common/filters/exception-handlers/fallback-exception.handler';
 
 import { AuthModule } from './modules/auth/auth.module';
 import { JobModule } from './modules/job/job.module';
@@ -169,7 +176,36 @@ import { EmailModule } from './modules/email/email.module';
       provide: APP_INTERCEPTOR,
       useClass: ResponseInterceptor,
     },
-    // Global Exception Filter is set in main.ts via app.useGlobalFilters()
+    // ── Exception Handlers (order matters — first match wins) ─────────
+    // ValidationExceptionHandler MUST come before HttpExceptionHandler
+    // because UnprocessableEntityException extends HttpException.
+    ValidationExceptionHandler,
+    HttpExceptionHandler,
+    QueryFailedExceptionHandler,
+    EntityNotFoundExceptionHandler,
+    FallbackExceptionHandler,
+    {
+      provide: EXCEPTION_HANDLERS,
+      useFactory: (
+        validation: ValidationExceptionHandler,
+        http: HttpExceptionHandler,
+        queryFailed: QueryFailedExceptionHandler,
+        entityNotFound: EntityNotFoundExceptionHandler,
+        fallback: FallbackExceptionHandler,
+      ) => [validation, http, queryFailed, entityNotFound, fallback],
+      inject: [
+        ValidationExceptionHandler,
+        HttpExceptionHandler,
+        QueryFailedExceptionHandler,
+        EntityNotFoundExceptionHandler,
+        FallbackExceptionHandler,
+      ],
+    },
+    // Global Exception Filter via DI (APP_FILTER)
+    {
+      provide: APP_FILTER,
+      useClass: GlobalExceptionFilter,
+    },
   ],
 })
 export class AppModule {}

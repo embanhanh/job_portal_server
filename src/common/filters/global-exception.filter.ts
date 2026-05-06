@@ -1,20 +1,16 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call */
 import {
   ArgumentsHost,
   Catch,
   ExceptionFilter,
-  HttpException,
   HttpStatus,
+  Inject,
   Logger,
 } from '@nestjs/common';
-import { I18nService } from 'nestjs-i18n';
-import { QueryFailedError, EntityNotFoundError } from 'typeorm';
-
-interface ExceptionResponseObject {
-  message?: string | string[];
-  error?: string;
-  statusCode?: number;
-}
+import type {
+  ExceptionHandler,
+  ExceptionResult,
+} from './exception-handlers/exception-handler.interface';
+import { EXCEPTION_HANDLERS } from './exception-handlers/exception-handler.interface';
 
 interface HttpRequest {
   method: string;
@@ -23,107 +19,95 @@ interface HttpRequest {
   headers?: Record<string, string | string[] | undefined>;
 }
 
+interface HttpResponse {
+  status(code: number): this;
+  json(body: unknown): this;
+}
+
+/**
+ * Global exception filter that delegates exception handling to registered handlers.
+ *
+ * Architecture (OCP):
+ *   - Handlers are injected via EXCEPTION_HANDLERS token (array ordered by priority).
+ *   - First handler where canHandle() returns true is used.
+ *   - FallbackExceptionHandler is always last.
+ *
+ * Async safety:
+ *   - catch() is synchronous to comply with NestJS expectations.
+ *   - Async logic is in handleException(), errors there are caught and logged.
+ */
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger(GlobalExceptionFilter.name);
 
-  constructor(private readonly i18n: I18nService) {}
+  constructor(
+    @Inject(EXCEPTION_HANDLERS)
+    private readonly handlers: ExceptionHandler[],
+  ) {}
 
-  async catch(exception: unknown, host: ArgumentsHost): Promise<void> {
+  catch(exception: unknown, host: ArgumentsHost): void {
+    this.handleException(exception, host).catch((err: unknown) => {
+      this.logger.error('GlobalExceptionFilter itself threw an error:', err);
+    });
+  }
+
+  private async handleException(
+    exception: unknown,
+    host: ArgumentsHost,
+  ): Promise<void> {
     const ctx = host.switchToHttp();
-    const response = ctx.getResponse();
+    const response = ctx.getResponse<HttpResponse>();
     const request = ctx.getRequest<HttpRequest>();
 
     const lang = this.getLang(request);
-    let statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
-    let message = 'Internal server error';
-    let errors: string[] | undefined;
 
-    // ── Handle HttpException ─────────────────────────────────────────
-    if (exception instanceof HttpException) {
-      statusCode = exception.getStatus();
-      const exceptionResponse = exception.getResponse();
+    // Find the first handler that can process this exception
+    const handler = this.handlers.find((h) => h.canHandle(exception));
 
-      if (typeof exceptionResponse === 'string') {
-        message = exceptionResponse;
-      } else {
-        const res = exceptionResponse as ExceptionResponseObject;
-        message = Array.isArray(res.message)
-          ? res.message[0]
-          : (res.message ?? exception.message);
-        errors = Array.isArray(res.message) ? res.message : undefined;
-      }
+    let result: ExceptionResult;
 
-      // Translate known HTTP status errors
-      if (statusCode === HttpStatus.UNAUTHORIZED) {
-        message = await this.i18n.translate('common.errors.unauthorized', {
-          lang,
-        });
-      } else if (statusCode === HttpStatus.FORBIDDEN) {
-        message = await this.i18n.translate('common.errors.forbidden', {
-          lang,
-        });
-      } else if (statusCode === HttpStatus.TOO_MANY_REQUESTS) {
-        message = await this.i18n.translate('common.errors.tooManyRequests', {
-          lang,
-        });
-      }
-    }
-    // ── Handle TypeORM QueryFailedError ───────────────────────────────
-    else if (exception instanceof QueryFailedError) {
-      statusCode = HttpStatus.BAD_REQUEST;
-      const driverError = exception.driverError as {
-        code?: string;
-        detail?: string;
+    if (handler) {
+      result = await handler.handle(exception, lang);
+    } else {
+      // Ultimate fallback if no handler matches (e.g. non-Error thrown)
+      this.logger.error(
+        'Unhandled exception with no matching handler:',
+        exception,
+      );
+      result = {
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        message: 'An internal server error occurred',
       };
-
-      if (driverError?.code === '23505') {
-        message = await this.i18n.translate('common.errors.duplicate', {
-          lang,
-        });
-      } else {
-        message = await this.i18n.translate('common.errors.database', { lang });
-      }
-    }
-    // ── Handle TypeORM EntityNotFoundError ────────────────────────────
-    else if (exception instanceof EntityNotFoundError) {
-      statusCode = HttpStatus.NOT_FOUND;
-      message = await this.i18n.translate('common.errors.notFound', { lang });
-    }
-    // ── Handle unknown errors ────────────────────────────────────────
-    else if (exception instanceof Error) {
-      message = exception.message;
     }
 
     this.logger.error(
-      `[${request.method}] ${request.url} → ${statusCode}: ${message}`,
+      `[${request.method}] ${request.url} → ${result.statusCode}: ${result.message}`,
       exception instanceof Error ? exception.stack : undefined,
     );
 
-    response.status(statusCode).json({
+    response.status(result.statusCode).json({
       success: false,
-      statusCode,
-      message,
-      errors,
+      statusCode: result.statusCode,
+      message: result.message,
+      errors: result.errors,
       timestamp: new Date().toISOString(),
       path: request.url,
     });
   }
 
   /**
-   * Resolve language using nestjs-i18n's resolved lang (from query or header),
-   * with fallback to Accept-Language header parsing.
+   * Resolves the request language with locale tag normalization.
+   * - Uses nestjs-i18n's resolved lang if available (i18nLang).
+   * - Falls back to Accept-Language header, normalizing "vi-VN" → "vi".
+   * - Defaults to "en".
    */
   private getLang(request: HttpRequest): string {
-    // nestjs-i18n attaches i18nLang to the request
-    if (request.i18nLang) {
-      return request.i18nLang;
-    }
+    if (request.i18nLang) return request.i18nLang;
 
-    // Fallback: parse Accept-Language header
     const acceptLang = request.headers?.['accept-language'];
     if (typeof acceptLang === 'string') {
-      return acceptLang.split(',')[0]?.trim() ?? 'en';
+      const primaryTag = acceptLang.split(',')[0]?.trim();
+      return primaryTag?.split('-')[0] ?? 'en'; // "vi-VN" → "vi"
     }
 
     return 'en';

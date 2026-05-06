@@ -6,6 +6,7 @@
 |-----------|--------|-------|
 | NestJS scaffold | ✅ Done | v11+ with strict TypeScript |
 | Config system | ✅ Done | 6 config modules (app, db, redis, es, cloudinary, firebase) |
+| Cloudinary Module | ✅ Done | Upload images/PDFs directly to Cloudinary via stream |
 | Base Entity | ✅ Done | UUID + timestamps + soft-delete |
 | Base Repository | ✅ Done | Generic CRUD + pagination |
 | Translatable Repository | ✅ Done | Context-aware read switching via ClsService + Redis cache |

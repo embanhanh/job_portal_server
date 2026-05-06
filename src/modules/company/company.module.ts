@@ -5,12 +5,12 @@ import { CompanyTranslation } from './entities/company-translation.entity';
 import { CompanyController } from './company.controller';
 import { CompanyService } from './company.service';
 import { CompanyRepository } from './company.repository';
-import { ApplicationModule } from '../application/application.module';
+import { CloudinaryModule } from '../cloudinary/cloudinary.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Company, CompanyTranslation]),
-    ApplicationModule,
+    CloudinaryModule,
   ],
   controllers: [CompanyController],
   providers: [CompanyService, CompanyRepository],

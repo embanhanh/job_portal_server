@@ -1,16 +1,12 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import { Client } from '@elastic/elasticsearch';
-import type {
-  MappingTypeMapping,
-  SearchHit,
-} from '@elastic/elasticsearch/lib/api/types';
+import { Client, estypes } from '@elastic/elasticsearch';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Job } from './entities/job.entity';
 import { JobTranslation } from './entities/job-translation.entity';
-import { JOB_EVENTS } from './job.constants';
+import { JOB_EVENTS } from './constants/job.constants';
 import type {
   JobSearchDocument,
   JobSearchResult,
@@ -106,7 +102,7 @@ export class JobElasticsearchListener implements OnModuleInit {
           : (result.hits.total?.value ?? 0);
 
       const hits: JobSearchResult[] = result.hits.hits.map(
-        (hit: SearchHit<JobSearchDocument>) => ({
+        (hit: estypes.SearchHit<JobSearchDocument>) => ({
           id: hit._id,
           score: hit._score,
           ...hit._source,
@@ -204,7 +200,7 @@ export class JobElasticsearchListener implements OnModuleInit {
   private async ensureIndex(): Promise<void> {
     const exists = await this.client.indices.exists({ index: JOB_INDEX });
     if (!exists) {
-      const mappings: MappingTypeMapping = {
+      const mappings: estypes.MappingTypeMapping = {
         properties: {
           title: {
             properties: {

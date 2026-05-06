@@ -9,7 +9,7 @@ import {
   ApplicationScoringProcessor,
   APPLICATION_QUEUE,
 } from './application.processor';
-import { CloudinaryService } from './cloudinary.service';
+import { CloudinaryModule } from '../cloudinary/cloudinary.module';
 import { JobModule } from '../job/job.module';
 
 @Module({
@@ -17,14 +17,14 @@ import { JobModule } from '../job/job.module';
     TypeOrmModule.forFeature([Application]),
     BullModule.registerQueue({ name: APPLICATION_QUEUE }),
     JobModule,
+    CloudinaryModule,
   ],
   controllers: [ApplicationController],
   providers: [
     ApplicationService,
     ApplicationRepository,
     ApplicationScoringProcessor,
-    CloudinaryService,
   ],
-  exports: [ApplicationService, CloudinaryService],
+  exports: [ApplicationService],
 })
 export class ApplicationModule {}

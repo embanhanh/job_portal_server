@@ -13,7 +13,8 @@ import { User } from '../auth/entities/user.entity';
 import { Role } from '../auth/enums/role.enum';
 import { CreateEducationDto, UpdateEducationDto } from './dto/education.dto';
 import { UpdateCandidateProfileDto } from './dto/update-candidate.dto';
-import { CloudinaryService } from '../application/cloudinary.service';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
+import { CLOUDINARY_FOLDERS } from '../cloudinary/constants/cloudinary.constants';
 import { CreateExperienceDto, UpdateExperienceDto } from './dto/experience.dto';
 
 @Injectable()
@@ -58,7 +59,10 @@ export class CandidateService extends BaseService<Candidate> {
       throw new NotFoundException('Candidate profile not found');
     }
 
-    const uploadResult = await this.cloudinaryService.uploadFile(file);
+    const uploadResult = await this.cloudinaryService.uploadFile(
+      file,
+      CLOUDINARY_FOLDERS.RESUMES,
+    );
     return this.update(candidate.id, {
       currentCvUrl: uploadResult.url,
     });

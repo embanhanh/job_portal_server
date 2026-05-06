@@ -18,7 +18,7 @@ import { IPaginatedResult } from '../../common/base/base.repository';
 import { JobElasticsearchListener } from './job-elasticsearch.listener';
 import { JobSearchResult } from './interfaces/job-search.interface';
 
-import { JOB_EVENTS } from './job.constants';
+import { JOB_EVENTS } from './constants/job.constants';
 
 @Injectable()
 export class JobService extends BaseService<Job> {

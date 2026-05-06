@@ -10,7 +10,8 @@
     "unauthorized": "Unauthorized access",
     "forbidden": "You do not have permission to perform this action",
     "validation": "Validation failed",
-    "tooManyRequests": "Too many requests, please try again later"
+    "tooManyRequests": "Too many requests, please try again later",
+    "internalServer": "An internal server error occurred"
   },
   "auth": {
     "loginSuccess": "Login successful",

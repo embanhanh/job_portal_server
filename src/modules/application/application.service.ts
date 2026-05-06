@@ -7,9 +7,10 @@ import {
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
-import { Application, ApplicationStatus } from './entities/application.entity';
+import { Application } from './entities/application.entity';
 import { ApplicationRepository } from './application.repository';
-import { CloudinaryService } from './cloudinary.service';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
+import { CLOUDINARY_FOLDERS } from '../cloudinary/constants/cloudinary.constants';
 import { BaseService } from '../../common/base/base.service';
 import { PaginationDto } from '../../common/dto/pagination.dto';
 import { IPaginatedResult } from '../../common/base/base.repository';
@@ -18,6 +19,7 @@ import type { ScoringJobData } from './application.processor';
 import { JobService } from '../job/job.service';
 import { JobStatus } from '../job/entities/job.entity';
 import { FindOptionsWhere } from 'typeorm';
+import { ApplicationStatus } from './enums/application-status';
 
 /** Valid status transitions for applications */
 const STATUS_TRANSITIONS: Record<ApplicationStatus, ApplicationStatus[]> = {
@@ -93,7 +95,10 @@ export class ApplicationService extends BaseService<Application> {
     let cvUrl: string | undefined;
     let cvPublicId: string | undefined;
     if (cvFile) {
-      const uploadResult = await this.cloudinaryService.uploadFile(cvFile);
+      const uploadResult = await this.cloudinaryService.uploadFile(
+        cvFile,
+        CLOUDINARY_FOLDERS.RESUMES,
+      );
       cvUrl = uploadResult.url;
       cvPublicId = uploadResult.publicId;
     }

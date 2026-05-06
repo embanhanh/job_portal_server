@@ -1,0 +1,18 @@
+{
+  "isEnum": "{field} phải thuộc một trong các giá trị: {values}",
+  "isNotEmpty": "{field} không được để trống",
+  "minLength": "{field} phải có ít nhất {min} ký tự",
+  "maxLength": "{field} không được vượt quá {max} ký tự",
+  "isEmail": "{field} phải là địa chỉ email hợp lệ",
+  "isString": "{field} phải là chuỗi ký tự",
+  "isNumber": "{field} phải là số",
+  "isBoolean": "{field} phải là boolean",
+  "isInt": "{field} phải là số nguyên",
+  "isPositive": "{field} phải là số dương",
+  "isArray": "{field} phải là mảng",
+  "isDate": "{field} phải là ngày hợp lệ",
+  "isUrl": "{field} phải là URL hợp lệ",
+  "isUUID": "{field} phải là UUID hợp lệ",
+  "isStrongPassword": "{field} không đủ mạnh",
+  "matches": "{field} không đúng định dạng"
+}

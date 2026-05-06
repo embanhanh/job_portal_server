@@ -1,11 +1,10 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe, VersioningType, Logger } from '@nestjs/common';
+import { VersioningType, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { I18nService } from 'nestjs-i18n';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
-import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
+import { I18nValidationPipe } from './common/pipes/i18n-validation.pipe';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
@@ -28,20 +27,9 @@ async function bootstrap() {
   });
 
   // ── Validation ───────────────────────────────────────────────────
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-      transformOptions: {
-        enableImplicitConversion: true,
-      },
-    }),
-  );
-
-  // ── Global Exception Filter ──────────────────────────────────────
-  const i18nService = app.get(I18nService);
-  app.useGlobalFilters(new GlobalExceptionFilter(i18nService));
+  // I18nValidationPipe extends ValidationPipe with per-field i18n error messages.
+  // GlobalExceptionFilter is registered via APP_FILTER in AppModule (DI pattern).
+  app.useGlobalPipes(new I18nValidationPipe());
 
   // ── Swagger Documentation ────────────────────────────────────────
   const swaggerConfig = new DocumentBuilder()

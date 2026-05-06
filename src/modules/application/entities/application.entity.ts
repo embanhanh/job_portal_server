@@ -2,16 +2,7 @@ import { Column, Entity, ManyToOne, JoinColumn } from 'typeorm';
 import { BaseEntity } from '../../../common/base/base.entity';
 import { User } from '../../auth/entities/user.entity';
 import { Job } from '../../job/entities/job.entity';
-
-export enum ApplicationStatus {
-  PENDING = 'pending',
-  REVIEWING = 'reviewing',
-  SHORTLISTED = 'shortlisted',
-  INTERVIEW = 'interview',
-  OFFERED = 'offered',
-  REJECTED = 'rejected',
-  WITHDRAWN = 'withdrawn',
-}
+import { ApplicationStatus } from '../enums/application-status';
 
 @Entity('applications')
 export class Application extends BaseEntity {

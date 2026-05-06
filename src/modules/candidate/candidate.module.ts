@@ -7,11 +7,10 @@ import { CandidateSkill } from './entities/candidate-skill.entity';
 import { CandidateController } from './candidate.controller';
 import { CandidateService } from './candidate.service';
 import { CandidateRepository } from './candidate.repository';
-import { ApplicationModule } from '../application/application.module';
+import { CloudinaryModule } from '../cloudinary/cloudinary.module';
 import { EducationRepository } from './repositories/education.repository';
 import { ExperienceRepository } from './repositories/experience.repository';
 import { CandidateSkillRepository } from './repositories/candidate-skill.repository';
-import { CloudinaryService } from '../application/cloudinary.service';
 
 @Module({
   imports: [
@@ -21,7 +20,7 @@ import { CloudinaryService } from '../application/cloudinary.service';
       Experience,
       CandidateSkill,
     ]),
-    ApplicationModule,
+    CloudinaryModule,
   ],
   controllers: [CandidateController],
   providers: [
@@ -30,7 +29,6 @@ import { CloudinaryService } from '../application/cloudinary.service';
     EducationRepository,
     ExperienceRepository,
     CandidateSkillRepository,
-    CloudinaryService,
   ],
   exports: [CandidateService],
 })

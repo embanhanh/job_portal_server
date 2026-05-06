@@ -2,22 +2,19 @@
 
 ## Current Task
 
-✅ **COMPLETED** — Refactored Internationalization (i18n) Architecture to use Normalized Translation Tables, nestjs-cls for global language context, and Redis caching.
+- **COMPLETED** — Create Cloudinary Module for file uploads (avatars, logos, resumes).
 
 ## Completed
 
-- [x] Refactored i18n Architecture: Migrated away from manual JSONB mapLanguage mapping to a scalable Translation Table structure.
-- [x] Phase 2: Candidate Module (Profile, CV Upload, Skills synchronization, Education, Experience)
-- [x] Phase 3: Company Module (Profile, Logo/License upload, Application status updates for ATS)
-- [x] Phase 4: Notification Module (BullMQ processor, Push notification skeleton, Event listener)
-- [x] Phase 5: Admin Module & Email Module (User/Job/Company management, Advanced search filters, Email queue)
-- [x] Eliminated all `any` types and unused variables through rigorous type checking and ESLint rules.
-- [x] Build passes completely.
+- [x] Create `cloudinary.constants.ts` and `cloudinary.types.ts`.
+- [x] Implement `CloudinaryProvider` using `ConfigService`.
+- [x] Implement `CloudinaryService` with `uploadFile` (via `streamifier`) and `deleteFile`.
+- [x] Set up Multer options for images (`image.multer-options.ts`) and PDFs (`pdf.multer-options.ts`) with custom size limits and mimetype filtering.
+- [x] Create `CloudinaryModule` to wrap provider and service.
+- [x] Refactored i18n Architecture and GlobalExceptionFilter.
 
 ## Next Steps
 
-- [ ] Add unit tests for services
-- [ ] Add e2e tests for API endpoints
-- [ ] Connect Frontend to Backend APIs
-- [ ] Set up CI/CD pipeline
-- [ ] Deploy to Staging environment
+- [ ] Add unit tests for Cloudinary Service.
+- [x] Connect Frontend file upload forms to backend endpoints utilizing this Cloudinary service.
+- [x] Refactor old Application/Cloudinary usages to use the new `CloudinaryModule` globally.
