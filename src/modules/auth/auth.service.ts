@@ -9,6 +9,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { I18nService } from 'nestjs-i18n';
 import * as bcrypt from 'bcryptjs';
 import * as crypto from 'crypto';
 import { User } from './entities/user.entity';
@@ -40,15 +41,18 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly eventEmitter: EventEmitter2,
+    private readonly i18n: I18nService,
   ) {}
 
-  async register(dto: RegisterDto): Promise<AuthTokens> {
+  async register(dto: RegisterDto, lang: string): Promise<AuthTokens> {
     const existingUser = await this.userRepository.findOne({
       where: { email: dto.email },
     });
 
     if (existingUser) {
-      throw new ConflictException('Email already registered');
+      throw new ConflictException(
+        this.i18n.translate('common.errors.duplicate', { lang }),
+      );
     }
 
     const hashedPassword = await this.hashPassword(dto.password);
@@ -70,13 +74,15 @@ export class AuthService {
     return tokens;
   }
 
-  async login(dto: LoginDto): Promise<AuthTokens> {
+  async login(dto: LoginDto, lang: string): Promise<AuthTokens> {
     const user = await this.userRepository.findOne({
       where: { email: dto.email },
     });
 
     if (!user || !user.password) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException(
+        this.i18n.translate('common.auth.invalidCredentials', { lang }),
+      );
     }
 
     const isPasswordValid = await this.verifyPassword(
@@ -84,7 +90,9 @@ export class AuthService {
       user.password,
     );
     if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException(
+        this.i18n.translate('common.auth.invalidCredentials', { lang }),
+      );
     }
 
     const tokens = await this.generateTokens(user);
@@ -138,11 +146,21 @@ export class AuthService {
     return this.userRepository.findOne({ where: { id: payload.sub } });
   }
 
+  async me(userId: string, lang: string): Promise<User> {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new UnauthorizedException(
+        this.i18n.translate('common.auth.userNotFound', { lang }),
+      );
+    }
+    return user;
+  }
+
   async logout(userId: string): Promise<void> {
     await this.userRepository.update(userId, { refreshToken: null });
   }
 
-  async refreshTokens(refreshToken: string): Promise<AuthTokens> {
+  async refreshTokens(refreshToken: string, lang: string): Promise<AuthTokens> {
     try {
       const payload: JwtPayload = await this.jwtService.verifyAsync(
         refreshToken,
@@ -156,7 +174,9 @@ export class AuthService {
       });
 
       if (!user || !user.refreshToken) {
-        throw new UnauthorizedException('Access Denied');
+        throw new UnauthorizedException(
+          this.i18n.translate('common.auth.tokenExpired', { lang }),
+        );
       }
 
       const hashedToken = crypto
@@ -165,16 +185,20 @@ export class AuthService {
         .digest('hex');
 
       if (user.refreshToken !== hashedToken) {
-        throw new UnauthorizedException('Access Denied');
+        throw new UnauthorizedException(
+          this.i18n.translate('common.auth.tokenExpired', { lang }),
+        );
       }
 
       const tokens = await this.generateTokens(user);
       await this.updateRefreshToken(user.id, tokens.refreshToken);
 
       return tokens;
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (e) {
-      throw new UnauthorizedException('Access Denied');
+      if (e instanceof UnauthorizedException) throw e;
+      throw new UnauthorizedException(
+        this.i18n.translate('common.auth.tokenExpired', { lang }),
+      );
     }
   }
 

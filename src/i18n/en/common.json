@@ -18,6 +18,9 @@
     "registerSuccess": "Registration successful",
     "invalidCredentials": "Invalid email or password",
     "tokenExpired": "Token has expired",
-    "logoutSuccess": "Logout successful"
+    "logoutSuccess": "Logout successful",
+    "refreshSuccess": "Session refreshed successfully",
+    "noRefreshToken": "No active session found",
+    "userNotFound": "User not found"
   }
 }

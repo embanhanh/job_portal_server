@@ -18,6 +18,9 @@
     "registerSuccess": "Đăng ký thành công",
     "invalidCredentials": "Email hoặc mật khẩu không đúng",
     "tokenExpired": "Phiên đăng nhập đã hết hạn",
-    "logoutSuccess": "Đăng xuất thành công"
+    "logoutSuccess": "Đăng xuất thành công",
+    "refreshSuccess": "Làm mới phiên thành công",
+    "noRefreshToken": "Không tìm thấy phiên đăng nhập",
+    "userNotFound": "Không tìm thấy người dùng"
   }
 }

@@ -8,6 +8,7 @@ import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 import { I18nValidationPipe } from './common/pipes/i18n-validation.pipe';
 
@@ -18,9 +19,10 @@ async function bootstrap() {
 
   // ── Security ─────────────────────────────────────────────────────
   app.use(helmet());
+  app.use(cookieParser()); // ← parse HTTP-only cookies
   app.enableCors({
-    origin: true,
-    credentials: true,
+    origin: configService.get<string>('app.clientUrl', 'http://localhost:3000'),
+    credentials: true, // bắt buộc để cookie hoạt động cross-origin
   });
 
   // ── API Prefix & Versioning ──────────────────────────────────────
