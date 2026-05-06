@@ -2,19 +2,22 @@
 
 ## Current Task
 
-- **COMPLETED** — Create Cloudinary Module for file uploads (avatars, logos, resumes).
+- **COMPLETED** — Audit codebase for type safety, validation, and security.
+- **COMPLETED** — Implement `GET /auth/me` endpoint.
 
 ## Completed
 
-- [x] Create `cloudinary.constants.ts` and `cloudinary.types.ts`.
-- [x] Implement `CloudinaryProvider` using `ConfigService`.
-- [x] Implement `CloudinaryService` with `uploadFile` (via `streamifier`) and `deleteFile`.
-- [x] Set up Multer options for images (`image.multer-options.ts`) and PDFs (`pdf.multer-options.ts`) with custom size limits and mimetype filtering.
-- [x] Create `CloudinaryModule` to wrap provider and service.
-- [x] Refactored i18n Architecture and GlobalExceptionFilter.
+- [x] Create `CloudinaryModule` for global file uploads.
+- [x] Refactored Company Registration & Admin Approval flow.
+- [x] Implemented `GET /auth/me` API.
+- [x] Configured Global `ClassSerializerInterceptor` in `main.ts`.
+- [x] Added `ColumnNumericTransformer` for decimal fields (fix salary string issue).
+- [x] Audited all controllers for `ParseUUIDPipe`.
+- [x] Enhanced DTO robust JSON parsing for `description` field.
 
 ## Next Steps
 
-- [ ] Add unit tests for Cloudinary Service.
-- [x] Connect Frontend file upload forms to backend endpoints utilizing this Cloudinary service.
-- [x] Refactor old Application/Cloudinary usages to use the new `CloudinaryModule` globally.
+- [ ] Implement Resume/CV management for Candidates.
+- [ ] Implement Job Posting lifecycle (Draft -> Published).
+- [ ] Set up Email notifications for application status changes.
+- [ ] Review `AUDIT_REPORT.md` manual items (sensitive fields exposure).

@@ -186,6 +186,14 @@ export class AuthService {
     return this.userRepository.save(user);
   }
 
+  async updateUserRole(id: string, role: Role): Promise<User> {
+    const user = await this.userRepository.findOne({ where: { id } });
+    if (!user) throw new NotFoundException('User not found');
+
+    user.role = role;
+    return this.userRepository.save(user);
+  }
+
   // ── Private Helpers ────────────────────────────────────────────────
 
   private async generateTokens(user: User): Promise<AuthTokens> {

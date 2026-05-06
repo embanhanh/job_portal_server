@@ -1,13 +1,19 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsObject, IsOptional, IsString, IsUrl } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsObject,
+  IsOptional,
+  IsString,
+  IsUrl,
+} from 'class-validator';
 import type { ITranslatableField } from '../../../common/interfaces/response.interface';
 
-export class UpdateCompanyProfileDto {
-  @ApiPropertyOptional({ example: 'Công ty Cổ phần Công nghệ ABC' })
-  @IsOptional()
+export class CreateCompanyDto {
+  @ApiProperty({ example: 'Công ty Cổ phần Công nghệ ABC' })
+  @IsNotEmpty()
   @IsString()
-  companyName?: string;
+  companyName!: string;
 
   @ApiPropertyOptional({ example: 'https://example.com' })
   @IsOptional()
@@ -16,6 +22,8 @@ export class UpdateCompanyProfileDto {
   website?: string;
 
   @ApiPropertyOptional({
+    type: 'string',
+    description: 'JSON string for translation or object',
     example: '{"vi": "Mô tả công ty...", "en": "Company description..."}',
   })
   @IsOptional()

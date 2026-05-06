@@ -1,6 +1,11 @@
 import { NestFactory } from '@nestjs/core';
-import { VersioningType, Logger } from '@nestjs/common';
+import {
+  VersioningType,
+  Logger,
+  ClassSerializerInterceptor,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Reflector } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
@@ -30,6 +35,7 @@ async function bootstrap() {
   // I18nValidationPipe extends ValidationPipe with per-field i18n error messages.
   // GlobalExceptionFilter is registered via APP_FILTER in AppModule (DI pattern).
   app.useGlobalPipes(new I18nValidationPipe());
+  app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
 
   // ── Swagger Documentation ────────────────────────────────────────
   const swaggerConfig = new DocumentBuilder()

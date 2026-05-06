@@ -1,4 +1,5 @@
 import { Column, Entity, ManyToOne, JoinColumn } from 'typeorm';
+import { ColumnNumericTransformer } from '../../../common/transformers/numeric.transformer';
 import { BaseEntity } from '../../../common/base/base.entity';
 import { User } from '../../auth/entities/user.entity';
 import { Job } from '../../job/entities/job.entity';
@@ -36,7 +37,13 @@ export class Application extends BaseEntity {
   })
   status!: ApplicationStatus;
 
-  @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true })
+  @Column({
+    type: 'decimal',
+    precision: 5,
+    scale: 2,
+    nullable: true,
+    transformer: new ColumnNumericTransformer(),
+  })
   score?: number;
 
   @Column({ type: 'jsonb', nullable: true })

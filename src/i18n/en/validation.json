@@ -14,5 +14,6 @@
   "isUrl": "{field} must be a valid URL",
   "isUUID": "{field} must be a valid UUID",
   "isStrongPassword": "{field} is not strong enough",
-  "matches": "{field} has an invalid format"
+  "matches": "{field} has an invalid format",
+  "isObject": "{field} must be an object"
 }

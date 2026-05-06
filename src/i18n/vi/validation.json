@@ -14,5 +14,6 @@
   "isUrl": "{field} phải là URL hợp lệ",
   "isUUID": "{field} phải là UUID hợp lệ",
   "isStrongPassword": "{field} không đủ mạnh",
-  "matches": "{field} không đúng định dạng"
+  "matches": "{field} không đúng định dạng",
+  "isObject": "{field} phải là một object"
 }

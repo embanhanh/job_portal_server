@@ -2,6 +2,7 @@ import { Column, Entity, OneToOne, JoinColumn } from 'typeorm';
 import { BaseEntity } from '../../../common/base/base.entity';
 import type { ITranslatableField } from '../../../common/interfaces/response.interface';
 import { User } from 'src/modules/auth/entities/user.entity';
+import { CompanyStatus } from '../enums/company-status.enum';
 
 @Entity('companies')
 export class Company extends BaseEntity {
@@ -26,8 +27,12 @@ export class Company extends BaseEntity {
   @Column({ name: 'business_license_url', nullable: true })
   businessLicenseUrl?: string;
 
-  @Column({ name: 'is_verified', default: false })
-  isVerified!: boolean;
+  @Column({
+    type: 'enum',
+    enum: CompanyStatus,
+    default: CompanyStatus.PENDING,
+  })
+  status!: CompanyStatus;
 
   @Column({ nullable: true })
   address?: string;

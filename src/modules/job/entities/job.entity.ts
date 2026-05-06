@@ -1,4 +1,5 @@
 import { Column, Entity, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
+import { ColumnNumericTransformer } from '../../../common/transformers/numeric.transformer';
 import { BaseEntity } from '../../../common/base/base.entity';
 import type { ITranslatableField } from '../../../common/interfaces/response.interface';
 import { Company } from 'src/modules/company/entities/company.entity';
@@ -66,10 +67,22 @@ export class Job extends BaseEntity {
   @Column({ type: 'enum', enum: JobStatus, default: JobStatus.PENDING })
   status!: JobStatus;
 
-  @Column({ type: 'decimal', precision: 12, scale: 2, nullable: true })
+  @Column({
+    type: 'decimal',
+    precision: 12,
+    scale: 2,
+    nullable: true,
+    transformer: new ColumnNumericTransformer(),
+  })
   salaryMin?: number;
 
-  @Column({ type: 'decimal', precision: 12, scale: 2, nullable: true })
+  @Column({
+    type: 'decimal',
+    precision: 12,
+    scale: 2,
+    nullable: true,
+    transformer: new ColumnNumericTransformer(),
+  })
   salaryMax?: number;
 
   @Column({ type: 'varchar', length: 10, default: 'VND' })
