@@ -7,7 +7,7 @@ import {
   Post,
   Req,
   Res,
-  UnauthorizedException,
+  // UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
@@ -68,7 +68,10 @@ export class AuthController {
   ) {
     const tokens = await this.authService.register(dto, lang);
     this.setAuthCookies(res, tokens);
-    return { message: 'common.auth.registerSuccess' };
+    return {
+      accessToken: tokens.accessToken,
+      message: 'common.auth.registerSuccess',
+    };
   }
 
   // ── POST /auth/login ────────────────────────────────────────────────
@@ -83,7 +86,10 @@ export class AuthController {
   ) {
     const tokens = await this.authService.login(dto, lang);
     this.setAuthCookies(res, tokens);
-    return { message: 'common.auth.loginSuccess' };
+    return {
+      accessToken: tokens.accessToken,
+      message: 'common.auth.loginSuccess',
+    };
   }
 
   // ── POST /auth/refresh ──────────────────────────────────────────────
@@ -97,16 +103,12 @@ export class AuthController {
     @I18nLang() lang: string,
   ) {
     const refreshToken = req.cookies['refresh_token'] as string | undefined;
-
-    if (!refreshToken) {
-      throw new UnauthorizedException(
-        this.i18n.translate('common.auth.noRefreshToken', { lang }),
-      );
-    }
-
     const tokens = await this.authService.refreshTokens(refreshToken, lang);
     this.setAuthCookies(res, tokens);
-    return { message: 'common.auth.refreshSuccess' };
+    return {
+      accessToken: tokens.accessToken,
+      message: 'common.auth.refreshSuccess',
+    };
   }
 
   // ── POST /auth/logout ───────────────────────────────────────────────

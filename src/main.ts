@@ -3,6 +3,7 @@ import {
   VersioningType,
   Logger,
   ClassSerializerInterceptor,
+  type LogLevel,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
@@ -12,10 +13,23 @@ import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 import { I18nValidationPipe } from './common/pipes/i18n-validation.pipe';
 
+function resolveLogLevels(logLevel: string): LogLevel[] {
+  const normalized = logLevel.toLowerCase() as LogLevel;
+  const levels: LogLevel[] = ['error', 'warn', 'log', 'debug', 'verbose'];
+  const index = levels.indexOf(normalized);
+  // Return levels from most severe up to and including the configured level
+  return index >= 0 ? levels.slice(0, index + 1) : ['error', 'warn', 'log'];
+}
+
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
+
+  // Configure NestJS logger levels from env config
+  const logLevel = configService.get<string>('app.logLevel', 'debug');
+  const logLevels = resolveLogLevels(logLevel);
+  app.useLogger(logLevels);
 
   // ── Security ─────────────────────────────────────────────────────
   app.use(helmet());

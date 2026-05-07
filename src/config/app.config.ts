@@ -5,6 +5,11 @@ export const appConfig = registerAs('app', () => ({
   env: process.env.APP_ENV ?? 'development',
   apiPrefix: process.env.API_PREFIX ?? 'api',
   apiVersion: parseInt(process.env.API_VERSION ?? '1', 10),
+  logLevel: process.env.LOG_LEVEL ?? 'debug', // 'debug' | 'log' | 'warn' | 'error'
+  slowRequestThresholdMs: parseInt(
+    process.env.SLOW_REQUEST_THRESHOLD_MS ?? '3000',
+    10,
+  ),
 }));
 
 export const jwtConfig = registerAs('jwt', () => ({

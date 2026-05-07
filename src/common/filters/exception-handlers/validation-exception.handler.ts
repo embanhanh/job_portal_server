@@ -61,7 +61,6 @@ export class ValidationExceptionHandler implements ExceptionHandler {
         validationError.constraints,
       )) {
         const args = validationError.contexts?.[constraintKey] ?? {};
-        console.log('ARGS:', args, 'CONTEXTS:', validationError.contexts);
         const translated = String(
           this.i18n.translate(i18nKey, {
             lang,

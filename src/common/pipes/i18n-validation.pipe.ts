@@ -93,12 +93,6 @@ function flattenValidationErrors(
             ? (rawCtx as Record<string, unknown>)
             : {};
 
-        console.log(
-          'DEBUG: constraintKey=',
-          constraintKey,
-          'propertyMetas length=',
-          propertyMetas.length,
-        );
         const meta = propertyMetas.find(
           (m) => m.name === constraintKey || m.type === constraintKey,
         );

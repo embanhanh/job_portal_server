@@ -11,6 +11,7 @@ import { CacheModule } from '@nestjs/cache-manager';
 import * as redisStore from 'cache-manager-redis-store';
 import * as path from 'path';
 import { Request } from 'express';
+import * as crypto from 'crypto';
 
 import {
   appConfig,
@@ -23,6 +24,7 @@ import {
   firebaseConfig,
 } from './config';
 
+import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
 import { EXCEPTION_HANDLERS } from './common/filters/exception-handlers/exception-handler.interface';
@@ -136,6 +138,8 @@ import { EmailModule } from './modules/email/email.module';
           const acceptLang = req.headers['accept-language'] as string;
           const lang = acceptLang?.split(',')[0]?.trim() || 'vi';
           cls.set('lang', lang);
+          // Set requestId for correlation in logs
+          cls.set('requestId', crypto.randomUUID());
         },
       },
     }),
@@ -170,6 +174,11 @@ import { EmailModule } from './modules/email/email.module';
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
+    },
+    // Global Logging Interceptor (should run before ResponseInterceptor)
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: LoggingInterceptor,
     },
     // Global Response Interceptor
     {

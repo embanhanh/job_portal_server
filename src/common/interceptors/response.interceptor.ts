@@ -41,18 +41,33 @@ export class ResponseInterceptor<T> implements NestInterceptor<
           return responseData;
         }
 
-        // Translate success message based on HTTP method
-        const messageKey = this.getMessageKey(request.method);
+        let messageKey = this.getMessageKey(request.method);
+        let finalData = responseData;
+
+        // Extract custom message if present
+        if (
+          responseData &&
+          typeof responseData === 'object' &&
+          responseData.message
+        ) {
+          messageKey = responseData.message as string;
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { message: _, ...rest } = responseData;
+          // If there are other fields, they go into data. If not, data is null.
+          finalData = Object.keys(rest).length > 0 ? rest : null;
+        }
+
+        // Translate success message
         const message = await this.i18n.translate(messageKey, { lang });
 
         // Handle paginated results (they contain data + meta)
-        if (responseData?.data && responseData?.meta) {
+        if (finalData?.data && finalData?.meta) {
           return {
             success: true,
             statusCode,
             message,
-            data: responseData.data,
-            meta: responseData.meta,
+            data: finalData.data,
+            meta: finalData.meta,
           };
         }
 
@@ -60,7 +75,7 @@ export class ResponseInterceptor<T> implements NestInterceptor<
           success: true,
           statusCode,
           message,
-          data: responseData,
+          data: finalData,
         };
       }),
     );

@@ -21,6 +21,7 @@
 | API Versioning | ✅ Done | URI-based v1 default |
 | Rate Limiting | ✅ Done | ThrottlerModule |
 | Swagger | ✅ Done | /api/docs |
+| Logging System | ✅ Done | LoggingInterceptor + requestId via CLS + Environment Log Levels |
 
 ## Feature Modules
 

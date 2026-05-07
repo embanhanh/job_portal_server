@@ -38,11 +38,18 @@ All responses wrapped by `ResponseInterceptor`:
 {
   "success": true,
   "statusCode": 200,
-  "message": "Success",
+  "message": "Success", // Auto-translated or custom key from controller
   "data": {},
   "meta": { "page": 1, "limit": 10, "totalItems": 100, ... }
 }
 ```
+
+- **Translatable Success Messages**: If a controller returns an object with a `message` property (e.g., `return { message: 'common.auth.loginSuccess', ... }`), the `ResponseInterceptor` will:
+    1.  Use the `message` value as a translation key.
+    2.  Translate it using `I18nService`.
+    3.  Move it to the top-level `message` field.
+    4.  Exclude the `message` key from the `data` object.
+
 
 ## i18n JSONB Pattern
 
@@ -111,4 +118,10 @@ export interface ExceptionHandler {
 
 - Dùng `POSTGRES_ERROR_CODES` constant từ `src/common/constants/postgres-error-codes.constant.ts`
 - Dùng `isPostgresError()` type guard thay unsafe cast
+
+## Logging & Tracing Pattern
+
+- **LoggingInterceptor**: Được đăng ký globally (chạy trước ResponseInterceptor) để trace toàn bộ vòng đời của một HTTP Request. Ghi log Request IN, Request OUT, chậm (SLOW > 3s) và lỗi chưa bắt.
+- **Correlation ID**: Mỗi request được cấp một `requestId` (UUID v4) thông qua ClsModule context. Log outputs được liên kết dựa trên `requestId` này.
+- **Environment Log Levels**: `app.logLevel` cấu hình log level của ứng dụng (debug, log, warn, error). `NestFactory` được update dynamically ở `main.ts` để chặn log output tùy theo level thay vì chỉ dùng defaults. Mọi thành phần đều nên khởi tạo private logger: `private readonly logger = new Logger(ClassName.name);` và dùng logger framework chuẩn. Dọn dẹp `console.log` trong dự án.
 

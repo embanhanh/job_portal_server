@@ -160,7 +160,15 @@ export class AuthService {
     await this.userRepository.update(userId, { refreshToken: null });
   }
 
-  async refreshTokens(refreshToken: string, lang: string): Promise<AuthTokens> {
+  async refreshTokens(
+    refreshToken: string | undefined,
+    lang: string,
+  ): Promise<AuthTokens> {
+    if (!refreshToken) {
+      throw new UnauthorizedException(
+        this.i18n.translate('common.auth.noRefreshToken', { lang }),
+      );
+    }
     try {
       const payload: JwtPayload = await this.jwtService.verifyAsync(
         refreshToken,
