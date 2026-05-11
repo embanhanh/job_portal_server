@@ -17,6 +17,7 @@ import { JobFilterDto } from './dto/job-filter.dto';
 import { IPaginatedResult } from '../../common/base/base.repository';
 import { JobElasticsearchListener } from './job-elasticsearch.listener';
 import { JobSearchResult } from './interfaces/job-search.interface';
+import { CompanyService } from '../company/company.service';
 
 import { JOB_EVENTS } from './constants/job.constants';
 
@@ -31,6 +32,7 @@ export class JobService extends BaseService<Job> {
     private readonly jobSkillRepository: Repository<JobSkill>,
     private readonly savedJobRepository: SavedJobRepository,
     private readonly esListener: JobElasticsearchListener,
+    private readonly companyService: CompanyService,
   ) {
     super(jobRepository);
   }
@@ -89,17 +91,20 @@ export class JobService extends BaseService<Job> {
     return job;
   }
 
-  async createJob(
-    dto: CreateJobDto,
-    employerId: string,
-    companyId?: string,
-  ): Promise<Job> {
+  async createJob(dto: CreateJobDto, employerId: string): Promise<Job> {
     const { skillIds, ...jobData } = dto;
+
+    const company = await this.companyService.findByUserId(employerId);
+    if (!company) {
+      throw new BadRequestException(
+        'Employer must have a registered company profile to post jobs',
+      );
+    }
 
     const job = await this.create({
       ...jobData,
       employerId,
-      companyId,
+      companyId: company.id,
       status: JobStatus.OPEN,
       expiredAt: dto.expiredAt ? new Date(dto.expiredAt) : undefined,
     });

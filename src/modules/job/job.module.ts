@@ -9,10 +9,12 @@ import { JobService } from './job.service';
 import { JobRepository } from './job.repository';
 import { SavedJobRepository } from './repositories/saved-job.repository';
 import { JobElasticsearchListener } from './job-elasticsearch.listener';
+import { CompanyModule } from '../company/company.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Job, JobSkill, SavedJob, JobTranslation]),
+    CompanyModule,
   ],
   controllers: [JobController],
   providers: [

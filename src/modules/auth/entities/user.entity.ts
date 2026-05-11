@@ -1,9 +1,11 @@
-import { Column, Entity } from 'typeorm';
+import { Column, Entity, OneToOne } from 'typeorm';
 import { BaseEntity } from '../../../common/base/base.entity';
 import { Role } from '../enums/role.enum';
 import { AuthProvider } from '../enums/auth-provider.enum';
 import { UserStatus } from '../enums/user-status.enum';
 import { Exclude } from 'class-transformer';
+import { Candidate } from 'src/modules/candidate/entities/candidate.entity';
+import { Company } from 'src/modules/company/entities/company.entity';
 
 @Entity('users')
 export class User extends BaseEntity {
@@ -50,4 +52,10 @@ export class User extends BaseEntity {
   @Column({ name: 'refresh_token', type: 'varchar', nullable: true })
   @Exclude()
   refreshToken?: string | null;
+
+  @OneToOne('Candidate', 'user', { nullable: true })
+  candidate?: Candidate; // Use any or proper type if imported
+
+  @OneToOne('Company', 'user', { nullable: true })
+  company?: Company;
 }

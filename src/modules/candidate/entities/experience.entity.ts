@@ -26,6 +26,6 @@ export class Experience extends BaseEntity {
   @Column({ name: 'is_current', default: false })
   isCurrent!: boolean;
 
-  @Column({ type: 'jsonb', nullable: true })
-  description?: Record<string, string>;
+  @Column({ type: 'text', nullable: true })
+  description?: string;
 }

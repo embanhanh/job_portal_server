@@ -4,6 +4,7 @@ import type { ITranslatableField } from '../../../common/interfaces/response.int
 
 @Entity('skills')
 export class Skill extends BaseEntity {
+  @Column({ type: 'jsonb', nullable: true })
   name!: ITranslatableField;
 
   @Column({ unique: true })

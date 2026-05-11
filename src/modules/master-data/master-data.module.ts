@@ -36,6 +36,13 @@ import { CategoryRepository } from './repositories/category.repository';
     LocationRepository,
     CategoryRepository,
   ],
-  exports: [SkillService, LocationService, CategoryService],
+  exports: [
+    SkillService,
+    LocationService,
+    CategoryService,
+    SkillRepository,
+    LocationRepository,
+    CategoryRepository,
+  ],
 })
 export class MasterDataModule {}

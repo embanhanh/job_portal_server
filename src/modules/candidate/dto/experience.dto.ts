@@ -3,7 +3,6 @@ import {
   IsBoolean,
   IsDateString,
   IsNotEmpty,
-  IsObject,
   IsOptional,
   IsString,
 } from 'class-validator';
@@ -35,11 +34,11 @@ export class CreateExperienceDto {
   isCurrent?: boolean;
 
   @ApiPropertyOptional({
-    example: { vi: 'Làm việc với React', en: 'Worked with React' },
+    example: 'Làm việc với React và Node.js',
   })
   @IsOptional()
-  @IsObject()
-  description?: Record<string, string>;
+  @IsString()
+  description?: string;
 }
 
 export class UpdateExperienceDto extends CreateExperienceDto {}

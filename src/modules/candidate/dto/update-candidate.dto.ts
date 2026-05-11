@@ -1,22 +1,72 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsObject, IsOptional, IsString } from 'class-validator';
+import {
+  IsBoolean,
+  IsObject,
+  IsOptional,
+  IsString,
+  IsArray,
+  ValidateNested,
+  IsDateString,
+  IsUUID,
+} from 'class-validator';
+import { Type } from 'class-transformer';
+
+export class UpdateEducationNestedDto {
+  @IsOptional()
+  @IsUUID()
+  id?: string;
+
+  @IsString()
+  schoolName!: string;
+
+  @IsOptional()
+  @IsString()
+  degree?: string;
+
+  @IsOptional()
+  @IsString()
+  fieldOfStudy?: string;
+
+  @IsDateString()
+  startDate!: string;
+
+  @IsOptional()
+  @IsDateString()
+  endDate?: string;
+
+  @IsOptional()
+  @IsString()
+  description?: string;
+}
+
+export class UpdateExperienceNestedDto {
+  @IsOptional()
+  @IsUUID()
+  id?: string;
+
+  @IsString()
+  companyName!: string;
+
+  @IsString()
+  position!: string;
+
+  @IsDateString()
+  startDate!: string;
+
+  @IsOptional()
+  @IsDateString()
+  endDate?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  isCurrent?: boolean;
+
+  @IsOptional()
+  @IsString()
+  description?: string;
+}
 
 export class UpdateCandidateProfileDto {
-  @ApiPropertyOptional({ example: 'Nguyen Van A' })
-  @IsOptional()
-  @IsString()
-  fullName?: string;
-
-  @ApiPropertyOptional({ example: '0901234567' })
-  @IsOptional()
-  @IsString()
-  phone?: string;
-
-  @ApiPropertyOptional({ example: 'https://example.com/avatar.jpg' })
-  @IsOptional()
-  @IsString()
-  avatarUrl?: string;
-
   @ApiPropertyOptional({
     example: { vi: 'Lập trình viên backend', en: 'Backend developer' },
   })
@@ -28,4 +78,24 @@ export class UpdateCandidateProfileDto {
   @IsOptional()
   @IsBoolean()
   isSearching?: boolean;
+
+  @ApiPropertyOptional({ type: [UpdateEducationNestedDto] })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => UpdateEducationNestedDto)
+  educations?: UpdateEducationNestedDto[];
+
+  @ApiPropertyOptional({ type: [UpdateExperienceNestedDto] })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => UpdateExperienceNestedDto)
+  experiences?: UpdateExperienceNestedDto[];
+
+  @ApiPropertyOptional({ example: ['uuid-skill-1', 'uuid-skill-2'] })
+  @IsOptional()
+  @IsArray()
+  @IsUUID(undefined, { each: true })
+  skillIds?: string[];
 }

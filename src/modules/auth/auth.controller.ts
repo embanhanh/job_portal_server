@@ -4,14 +4,17 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Patch,
   Post,
   Req,
   Res,
-  // UnauthorizedException,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { AuthGuard } from '@nestjs/passport';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiCookieAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { I18nLang, I18nService } from 'nestjs-i18n';
 import { AuthService } from './auth.service';
@@ -24,6 +27,7 @@ import {
   refreshTokenCookieOptions,
 } from './constants/cookie.constants';
 import type { AuthenticatedRequest } from '../../common/interfaces/authenticated-request.interface';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -49,12 +53,19 @@ export class AuthController {
       tokens.refreshToken,
       refreshTokenCookieOptions(this.isProd),
     );
+    // Auth Hint cho Client (Non-HTTP-Only)
+    res.cookie('has_session', 'true', {
+      httpOnly: false,
+      path: '/',
+      sameSite: 'lax',
+    });
   }
 
   // ── Helper: clear auth cookies ──────────────────────────────────────
   private clearAuthCookies(res: Response): void {
     res.clearCookie('access_token', { path: '/' });
     res.clearCookie('refresh_token', { path: '/' });
+    res.clearCookie('has_session', { path: '/' });
   }
 
   // ── POST /auth/register ─────────────────────────────────────────────
@@ -102,13 +113,19 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
     @I18nLang() lang: string,
   ) {
-    const refreshToken = req.cookies['refresh_token'] as string | undefined;
-    const tokens = await this.authService.refreshTokens(refreshToken, lang);
-    this.setAuthCookies(res, tokens);
-    return {
-      accessToken: tokens.accessToken,
-      message: 'common.auth.refreshSuccess',
-    };
+    try {
+      const refreshToken = req.cookies['refresh_token'] as string | undefined;
+      const tokens = await this.authService.refreshTokens(refreshToken, lang);
+      this.setAuthCookies(res, tokens);
+      return {
+        accessToken: tokens.accessToken,
+        message: 'common.auth.refreshSuccess',
+      };
+    } catch (error) {
+      // Clear cookies if refresh fails (token invalid, expired, or mismatch)
+      this.clearAuthCookies(res);
+      throw error;
+    }
   }
 
   // ── POST /auth/logout ───────────────────────────────────────────────
@@ -135,6 +152,19 @@ export class AuthController {
   @ApiOperation({ summary: 'Get current authenticated user' })
   async me(@Req() req: AuthenticatedRequest, @I18nLang() lang: string) {
     return this.authService.me(req.user.id, lang);
+  }
+
+  @Patch('profile')
+  @UseGuards(JwtAuthGuard)
+  @ApiCookieAuth()
+  @UseInterceptors(FileInterceptor('avatar'))
+  @ApiOperation({ summary: 'Update current authenticated user profile' })
+  async updateProfile(
+    @Req() req: AuthenticatedRequest,
+    @Body() dto: UpdateUserDto,
+    @UploadedFile() file?: Express.Multer.File,
+  ) {
+    return this.authService.updateProfile(req.user.id, dto, file);
   }
 
   // ── OAuth2: Google ─────────────────────────────────────────────────

@@ -17,6 +17,7 @@ import { UserStatus } from './enums/user-status.enum';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { Role } from './enums/role.enum';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 export interface JwtPayload {
   sub: string;
@@ -33,6 +34,10 @@ export const AUTH_EVENTS = {
   USER_REGISTERED: 'auth.user_registered',
 } as const;
 
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
+import { CLOUDINARY_FOLDERS } from '../cloudinary/constants/cloudinary.constants';
+import { SkillRepository } from '../master-data/repositories/skill.repository';
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -42,6 +47,8 @@ export class AuthService {
     private readonly configService: ConfigService,
     private readonly eventEmitter: EventEmitter2,
     private readonly i18n: I18nService,
+    private readonly cloudinaryService: CloudinaryService,
+    private readonly skillRepository: SkillRepository,
   ) {}
 
   async register(dto: RegisterDto, lang: string): Promise<AuthTokens> {
@@ -147,17 +154,70 @@ export class AuthService {
   }
 
   async me(userId: string, lang: string): Promise<User> {
-    const user = await this.userRepository.findOne({ where: { id: userId } });
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: [
+        'candidate',
+        'candidate.educations',
+        'candidate.experiences',
+        'candidate.candidateSkills',
+        'candidate.candidateSkills.skill',
+        'company',
+      ],
+    });
     if (!user) {
       throw new UnauthorizedException(
         this.i18n.translate('common.auth.userNotFound', { lang }),
       );
     }
+
+    if (user.candidate?.candidateSkills) {
+      const skills = user.candidate.candidateSkills
+        .map((cs) => cs.skill)
+        .filter(Boolean);
+      if (skills.length > 0) {
+        const translatedSkills =
+          await this.skillRepository.applyTranslationsMany(skills);
+        user.candidate.candidateSkills.forEach((cs) => {
+          if (cs.skill) {
+            const translated = translatedSkills.find(
+              (ts) => ts.id === cs.skill.id,
+            );
+            if (translated) {
+              cs.skill = translated;
+            }
+          }
+        });
+      }
+    }
+
     return user;
   }
 
   async logout(userId: string): Promise<void> {
     await this.userRepository.update(userId, { refreshToken: null });
+  }
+
+  async updateProfile(
+    userId: string,
+    dto: UpdateUserDto,
+    file?: Express.Multer.File,
+  ): Promise<User> {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (file) {
+      const uploadResult = await this.cloudinaryService.uploadFile(
+        file,
+        CLOUDINARY_FOLDERS.AVATARS,
+      );
+      user.avatar = uploadResult.url;
+    }
+
+    Object.assign(user, dto);
+    return this.userRepository.save(user);
   }
 
   async refreshTokens(
