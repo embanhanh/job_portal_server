@@ -14,15 +14,6 @@ export class Candidate extends BaseEntity {
   @JoinColumn({ name: 'user_id' })
   user!: User;
 
-  @Column({ name: 'full_name', nullable: true })
-  fullName?: string;
-
-  @Column({ nullable: true })
-  phone?: string;
-
-  @Column({ name: 'avatar_url', nullable: true })
-  avatarUrl?: string;
-
   @Column({ type: 'jsonb', nullable: true })
   bio?: Record<string, string>;
 

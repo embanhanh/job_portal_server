@@ -11,16 +11,20 @@ import { CloudinaryModule } from '../cloudinary/cloudinary.module';
 import { EducationRepository } from './repositories/education.repository';
 import { ExperienceRepository } from './repositories/experience.repository';
 import { CandidateSkillRepository } from './repositories/candidate-skill.repository';
+import { User } from '../auth/entities/user.entity';
+import { MasterDataModule } from '../master-data/master-data.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([
+      User,
       Candidate,
       Education,
       Experience,
       CandidateSkill,
     ]),
     CloudinaryModule,
+    MasterDataModule,
   ],
   controllers: [CandidateController],
   providers: [

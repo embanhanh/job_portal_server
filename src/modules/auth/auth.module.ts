@@ -9,10 +9,14 @@ import { User } from './entities/user.entity';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { GoogleStrategy } from './strategies/google.strategy';
 import { FacebookStrategy } from './strategies/facebook.strategy';
+import { CloudinaryModule } from '../cloudinary/cloudinary.module';
+import { MasterDataModule } from '../master-data/master-data.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([User]),
+    CloudinaryModule,
+    MasterDataModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],

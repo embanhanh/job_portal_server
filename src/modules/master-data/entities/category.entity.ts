@@ -4,11 +4,13 @@ import type { ITranslatableField } from '../../../common/interfaces/response.int
 
 @Entity('categories')
 export class Category extends BaseEntity {
+  @Column({ type: 'jsonb', nullable: true })
   name!: ITranslatableField;
 
   @Column({ unique: true })
   slug!: string;
 
+  @Column({ type: 'jsonb', nullable: true })
   description?: ITranslatableField;
 
   @Column({ name: 'parent_id', nullable: true })
