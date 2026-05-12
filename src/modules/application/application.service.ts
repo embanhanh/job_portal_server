@@ -20,6 +20,7 @@ import { JobService } from '../job/job.service';
 import { JobStatus } from '../job/entities/job.entity';
 import { FindOptionsWhere } from 'typeorm';
 import { ApplicationStatus } from './enums/application-status';
+import { CandidateService } from '../candidate/candidate.service';
 
 /** Valid status transitions for applications */
 const STATUS_TRANSITIONS: Record<ApplicationStatus, ApplicationStatus[]> = {
@@ -56,6 +57,7 @@ export class ApplicationService extends BaseService<Application> {
     private readonly applicationRepository: ApplicationRepository,
     private readonly cloudinaryService: CloudinaryService,
     private readonly jobService: JobService,
+    private readonly candidateService: CandidateService,
     private readonly eventEmitter: EventEmitter2,
     @InjectQueue(APPLICATION_QUEUE) private readonly scoringQueue: Queue,
   ) {
@@ -65,6 +67,8 @@ export class ApplicationService extends BaseService<Application> {
   async apply(
     candidateId: string,
     jobId: string,
+    fullName: string,
+    phone: string,
     coverLetter?: string,
     cvFile?: Express.Multer.File,
   ): Promise<Application> {
@@ -101,12 +105,20 @@ export class ApplicationService extends BaseService<Application> {
       );
       cvUrl = uploadResult.url;
       cvPublicId = uploadResult.publicId;
+    } else {
+      // Use existing CV from candidate profile if available
+      const candidate = await this.candidateService.findByUserId(candidateId);
+      if (candidate?.currentCvUrl) {
+        cvUrl = candidate.currentCvUrl;
+      }
     }
 
     // Create application
     const application = await this.create({
       candidateId,
       jobId,
+      fullName,
+      phone,
       coverLetter,
       cvUrl,
       cvPublicId,

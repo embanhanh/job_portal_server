@@ -5,7 +5,6 @@ import type { ITranslatableField } from '../../../common/interfaces/response.int
 import { Company } from 'src/modules/company/entities/company.entity';
 import { User } from 'src/modules/auth/entities/user.entity';
 import { Category } from 'src/modules/master-data/entities/category.entity';
-import { Location } from 'src/modules/master-data/entities/location.entity';
 import { JobSkill } from './job-skill.entity';
 
 export enum JobStatus {
@@ -54,12 +53,8 @@ export class Job extends BaseEntity {
   @JoinColumn({ name: 'category_id' })
   category?: Category;
 
-  @Column({ name: 'location_id', nullable: true })
-  locationId?: string;
-
-  @ManyToOne('Location', { nullable: true, onDelete: 'SET NULL' })
-  @JoinColumn({ name: 'location_id' })
-  location?: Location;
+  @Column({ type: 'varchar', nullable: true })
+  location?: string;
 
   @Column({ type: 'enum', enum: JobType, default: JobType.FULL_TIME })
   type!: JobType;

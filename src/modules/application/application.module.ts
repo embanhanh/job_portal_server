@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { BullModule } from '@nestjs/bullmq';
 import { Application } from './entities/application.entity';
@@ -11,12 +11,14 @@ import {
 } from './application.processor';
 import { CloudinaryModule } from '../cloudinary/cloudinary.module';
 import { JobModule } from '../job/job.module';
+import { CandidateModule } from '../candidate/candidate.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Application]),
     BullModule.registerQueue({ name: APPLICATION_QUEUE }),
-    JobModule,
+    forwardRef(() => JobModule),
+    CandidateModule,
     CloudinaryModule,
   ],
   controllers: [ApplicationController],
@@ -25,6 +27,6 @@ import { JobModule } from '../job/job.module';
     ApplicationRepository,
     ApplicationScoringProcessor,
   ],
-  exports: [ApplicationService],
+  exports: [ApplicationService, ApplicationRepository],
 })
 export class ApplicationModule {}

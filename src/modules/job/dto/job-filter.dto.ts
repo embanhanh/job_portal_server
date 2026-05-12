@@ -17,11 +17,10 @@ export class JobFilterDto extends PaginationDto {
   @IsString()
   categoryId?: string;
 
-  @ApiPropertyOptional({ description: 'Location UUID' })
+  @ApiPropertyOptional({ description: 'Location text' })
   @IsOptional()
-  @IsUUID()
   @IsString()
-  locationId?: string;
+  location?: string;
 
   @ApiPropertyOptional({ enum: JobType })
   @IsOptional()

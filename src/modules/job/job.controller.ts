@@ -101,4 +101,15 @@ export class JobController {
   ) {
     return this.jobService.toggleSaveJob(req.user.id, id);
   }
+
+  @Get(':id/user-status')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.CANDIDATE)
+  @ApiOperation({ summary: 'Get user status for a job (Candidate only)' })
+  async getUserStatus(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.jobService.getUserJobStatus(req.user.id, id);
+  }
 }

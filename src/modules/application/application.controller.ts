@@ -44,6 +44,8 @@ export class ApplicationController {
     return this.applicationService.apply(
       req.user.id,
       dto.jobId,
+      dto.fullName,
+      dto.phone,
       dto.coverLetter,
       cvFile,
     );

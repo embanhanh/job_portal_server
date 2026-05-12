@@ -37,6 +37,9 @@ export class Company extends BaseEntity {
   @Column({ nullable: true })
   address?: string;
 
+  @Column({ type: 'varchar', nullable: true })
+  location?: string;
+
   @Column({ nullable: true })
   industry?: string;
 }

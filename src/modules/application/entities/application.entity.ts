@@ -21,6 +21,12 @@ export class Application extends BaseEntity {
   @JoinColumn({ name: 'job_id' })
   job!: Job;
 
+  @Column({ name: 'full_name', nullable: true })
+  fullName?: string;
+
+  @Column({ name: 'phone', nullable: true })
+  phone?: string;
+
   @Column({ name: 'cv_url', nullable: true })
   cvUrl?: string;
 
