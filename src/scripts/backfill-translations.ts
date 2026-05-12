@@ -4,12 +4,10 @@ import { DataSource } from 'typeorm';
 import { Job } from '../modules/job/entities/job.entity';
 import { Category } from '../modules/master-data/entities/category.entity';
 import { Skill } from '../modules/master-data/entities/skill.entity';
-import { Location } from '../modules/master-data/entities/location.entity';
 import { Company } from '../modules/company/entities/company.entity';
 import { JobTranslation } from '../modules/job/entities/job-translation.entity';
 import { CategoryTranslation } from '../modules/master-data/entities/category-translation.entity';
 import { SkillTranslation } from '../modules/master-data/entities/skill-translation.entity';
-import { LocationTranslation } from '../modules/master-data/entities/location-translation.entity';
 import { CompanyTranslation } from '../modules/company/entities/company-translation.entity';
 
 async function bootstrap() {
@@ -21,7 +19,7 @@ async function bootstrap() {
   await backfillJobTranslations(dataSource);
   await backfillCategoryTranslations(dataSource);
   await backfillSkillTranslations(dataSource);
-  await backfillLocationTranslations(dataSource);
+
   await backfillCompanyTranslations(dataSource);
 
   console.log('--- Backfill Complete ---');
@@ -103,29 +101,6 @@ async function backfillSkillTranslations(dataSource: DataSource) {
     }
   }
   console.log(`Successfully processed ${items.length} Skills.`);
-}
-
-async function backfillLocationTranslations(dataSource: DataSource) {
-  console.log('Backfilling Location translations...');
-  const repo = dataSource.getRepository(Location);
-  const transRepo = dataSource.getRepository(LocationTranslation);
-
-  const items = await repo.find();
-  for (const item of items) {
-    const langs = ['vi', 'en'];
-    for (const lang of langs) {
-      const nameObj = item.name as unknown as Record<string, string>;
-
-      if (nameObj && nameObj[lang]) {
-        await transRepo.save({
-          locationId: item.id,
-          language: lang,
-          name: nameObj[lang] || '',
-        });
-      }
-    }
-  }
-  console.log(`Successfully processed ${items.length} Locations.`);
 }
 
 async function backfillCompanyTranslations(dataSource: DataSource) {

@@ -12,7 +12,7 @@ export interface JobSearchDocument {
   currency: string;
   skills: string[];
   categoryId?: string;
-  locationId?: string;
+  location?: string;
   companyId?: string;
   employerId: string;
   createdAt: Date;

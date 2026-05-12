@@ -34,7 +34,7 @@ export class JobRepository extends TranslatableRepository<Job, JobTranslation> {
       skip,
       search,
       categoryId,
-      locationId,
+      location,
       type,
       status,
       salaryMin,
@@ -51,7 +51,6 @@ export class JobRepository extends TranslatableRepository<Job, JobTranslation> {
       .leftJoinAndSelect('job.employer', 'employer')
       .leftJoinAndSelect('job.company', 'company')
       .leftJoinAndSelect('job.category', 'category')
-      .leftJoinAndSelect('job.location', 'location')
       .leftJoinAndSelect('job.jobSkills', 'jobSkill')
       .leftJoinAndSelect('jobSkill.skill', 'skill')
       .leftJoin(
@@ -83,8 +82,8 @@ export class JobRepository extends TranslatableRepository<Job, JobTranslation> {
     if (categoryId) {
       queryBuilder.andWhere('job.categoryId = :categoryId', { categoryId });
     }
-    if (locationId) {
-      queryBuilder.andWhere('job.locationId = :locationId', { locationId });
+    if (location) {
+      queryBuilder.andWhere('job.location = :location', { location });
     }
     if (type) {
       queryBuilder.andWhere('job.type = :type', { type });
@@ -128,7 +127,6 @@ export class JobRepository extends TranslatableRepository<Job, JobTranslation> {
       .leftJoinAndSelect('job.employer', 'employer')
       .leftJoinAndSelect('job.company', 'company')
       .leftJoinAndSelect('job.category', 'category')
-      .leftJoinAndSelect('job.location', 'location')
       .leftJoinAndSelect('job.jobSkills', 'jobSkill')
       .leftJoinAndSelect('jobSkill.skill', 'skill')
       .where('job.id = :id', { id })

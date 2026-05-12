@@ -258,10 +258,18 @@ export class AuthService {
         );
       }
 
-      const tokens = await this.generateTokens(user);
-      await this.updateRefreshToken(user.id, tokens.refreshToken);
+      const payloadObj: JwtPayload = {
+        sub: user.id,
+        email: user.email,
+        role: user.role,
+      };
 
-      return tokens;
+      const newAccessToken = await this.jwtService.signAsync(payloadObj);
+
+      return {
+        accessToken: newAccessToken,
+        refreshToken: refreshToken,
+      };
     } catch (e) {
       if (e instanceof UnauthorizedException) throw e;
       throw new UnauthorizedException(

@@ -20,6 +20,8 @@ import { JobSearchResult } from './interfaces/job-search.interface';
 import { CompanyService } from '../company/company.service';
 
 import { JOB_EVENTS } from './constants/job.constants';
+import { ApplicationRepository } from '../application/application.repository';
+import { CandidateService } from '../candidate/candidate.service';
 
 @Injectable()
 export class JobService extends BaseService<Job> {
@@ -31,8 +33,10 @@ export class JobService extends BaseService<Job> {
     @InjectRepository(JobSkill)
     private readonly jobSkillRepository: Repository<JobSkill>,
     private readonly savedJobRepository: SavedJobRepository,
+    private readonly applicationRepository: ApplicationRepository,
     private readonly esListener: JobElasticsearchListener,
     private readonly companyService: CompanyService,
+    private readonly candidateService: CandidateService,
   ) {
     super(jobRepository);
   }
@@ -203,22 +207,53 @@ export class JobService extends BaseService<Job> {
   // ── Saved Jobs ─────────────────────────────────────────────────────
 
   async toggleSaveJob(
-    candidateId: string,
+    userId: string,
     jobId: string,
   ): Promise<{ saved: boolean }> {
-    // const job = await this.findOne(jobId);
+    const candidate = await this.candidateService.findByUserId(userId);
+    if (!candidate) {
+      throw new BadRequestException('Candidate profile not found');
+    }
 
     const existing = await this.savedJobRepository.findByCandidateAndJob(
-      candidateId,
+      candidate.id,
       jobId,
     );
 
     if (existing) {
-      await this.savedJobRepository.deleteByCandidateAndJob(candidateId, jobId);
+      await this.savedJobRepository.deleteByCandidateAndJob(
+        candidate.id,
+        jobId,
+      );
       return { saved: false };
     } else {
-      await this.savedJobRepository.createEntity({ candidateId, jobId });
+      await this.savedJobRepository.createEntity({
+        candidateId: candidate.id,
+        jobId,
+      });
       return { saved: true };
     }
+  }
+
+  async getUserJobStatus(
+    userId: string,
+    jobId: string,
+  ): Promise<{ isSaved: boolean; isApplied: boolean }> {
+    const candidate = await this.candidateService.findByUserId(userId);
+
+    // If no candidate profile, it's not saved and not applied (likely not a candidate role, or profile not created)
+    if (!candidate) {
+      return { isSaved: false, isApplied: false };
+    }
+
+    const [saved, applied] = await Promise.all([
+      this.savedJobRepository.findByCandidateAndJob(candidate.id, jobId),
+      this.applicationRepository.findByCandidateAndJob(userId, jobId),
+    ]);
+
+    return {
+      isSaved: !!saved,
+      isApplied: !!applied,
+    };
   }
 }

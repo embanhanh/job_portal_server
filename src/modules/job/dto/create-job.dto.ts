@@ -54,10 +54,10 @@ export class CreateJobDto {
   @IsUUID()
   categoryId?: string;
 
-  @ApiPropertyOptional({ description: 'Location UUID' })
+  @ApiPropertyOptional({ description: 'Location text (e.g. Ho Chi Minh)' })
   @IsOptional()
-  @IsUUID()
-  locationId?: string;
+  @IsString()
+  location?: string;
 
   @ApiPropertyOptional({ enum: JobType, default: JobType.FULL_TIME })
   @IsOptional()
